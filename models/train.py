@@ -150,7 +150,7 @@ def run_training_for_params(
     memory = ReplayMemory(10000)
 
 
-    num_episodes = 1
+    num_episodes = 30
     results = []
     for i_episode in range(num_episodes):
         print("Episode #: ", i_episode)

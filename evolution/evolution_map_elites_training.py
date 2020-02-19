@@ -21,7 +21,7 @@ class ParamsAgent:
 
 class GeneticEvolver:
     def __init__(self):
-        self.SAMPLED_POPULATION_SIZE = 4 # 8
+        self.SAMPLED_POPULATION_SIZE = 5 # 8
         self.GENERATIONS = 10000 # 5
         self.MUTATION_PROBABILITY = 0.2
 
