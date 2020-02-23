@@ -30,7 +30,7 @@ resize = T.Compose([T.ToPILImage(),
 plt.ion()
 
 
-def select_action(state, policy_net,
+def select_action(state, policy_net, n_actions,
                   EPS_START=0.9,
                   EPS_END=0.05,
                   EPS_DECAY=200,
@@ -84,7 +84,7 @@ def run_training_for_params(policy_net,
     won = 0
 
     for t in count():
-        action = select_action(state, policy_net)
+        action = select_action(state, policy_net, n_actions)
         _, reward, done, _ = env.step(action.item())
         reward = torch.tensor([reward], device=device)
 
@@ -100,6 +100,7 @@ def run_training_for_params(policy_net,
         sum_score += reward
         #         if t % 100 == 0:
         #             print("Time: ", t, " Reward: ", reward[0], "Score: ", sum_score[0], " Aliens Killed: ",aliens_killed)
+
         # Store the transition in memory
         memory.push(state, action, next_state, reward)
 
@@ -126,9 +127,9 @@ def run_training_for_params(policy_net,
 
 if __name__ == '__main__':
     print('running main')
-    def get_initial_policy_net(level='gvgai-zelda-lvl0-v0', LINEAR_INPUT_SCALAR=8,
+    def get_initial_policy_net(LINEAR_INPUT_SCALAR=8,
                                KERNEL=5):
-        env = gym.make(level)
+        env = gym.make('gvgai-zelda-lvl0-v0')
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         init_screen = get_screen(env, device)
 
@@ -140,4 +141,4 @@ if __name__ == '__main__':
         return policy_net, init_model
     net, model = get_initial_policy_net()
 
-    run_training_for_params(net, model)
+    run_training_for_params(net, 'gvgai-zelda-lvl0-v0')
