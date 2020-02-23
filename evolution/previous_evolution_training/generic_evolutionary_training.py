@@ -1,6 +1,6 @@
 import random
 
-from models.train import run_training_for_params
+from models.train_dqn import run_training_for_params
 
 
 class ParamsAgent:

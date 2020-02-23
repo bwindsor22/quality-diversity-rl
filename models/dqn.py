@@ -6,23 +6,6 @@ class DQN(nn.Module):
 
     def __init__(self, h, w, linear_input_scalar, kernel_size, outputs):
         super(DQN, self).__init__()
-        # Original Height: 110
-        # self.conv1 = nn.Conv2d(3, 16, kernel_size=5, stride=2)
-        # self.bn1 = nn.BatchNorm2d(16)
-        # self.conv2 = nn.Conv2d(16, 32, kernel_size=5, stride=2)
-        # self.bn2 = nn.BatchNorm2d(32)
-        # self.conv3 = nn.Conv2d(32, 32, kernel_size=5, stride=2)
-        # self.bn3 = nn.BatchNorm2d(32)
-
-        # V2 Height: 55
-        # self.conv1 = nn.Conv2d(3, 8, kernel_size=5, stride=2)
-        # self.bn1 = nn.BatchNorm2d(8)
-        # self.conv2 = nn.Conv2d(8, 16, kernel_size=5, stride=2)
-        # self.bn2 = nn.BatchNorm2d(16)
-        # self.conv3 = nn.Conv2d(16, 16, kernel_size=5, stride=2)
-        # self.bn3 = nn.BatchNorm2d(16)
-
-        # V3 Height 28
 
         half_scalar = int(linear_input_scalar / 2)
         self.conv1 = nn.Conv2d(3, half_scalar, kernel_size=kernel_size, stride=2)
@@ -40,13 +23,6 @@ class DQN(nn.Module):
         convw = conv2d_size_out(conv2d_size_out(conv2d_size_out(w)))
         convh = conv2d_size_out(conv2d_size_out(conv2d_size_out(h)))
 
-        # Original Height: 110
-        # linear_input_size = convw * convh * 32
-
-        # V2 Height: 55
-        # linear_input_size = convw * convh * 16
-
-        # V3 Height: 28
         linear_input_size = convw * convh * linear_input_scalar
 
         self.head = nn.Linear(linear_input_size, outputs)
