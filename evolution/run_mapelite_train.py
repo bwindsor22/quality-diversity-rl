@@ -77,18 +77,23 @@ def run():
     policy_net, init_model = get_initial_policy_net()
     logging.info('Beginning initial map elites run')
     init_iter = 1
-    num_iter = 10
+    num_iter = 2000
+    mutate_possibility = 0.5
+    crossover_possibility = 0.7
     map_e = MapElites(policy_net,
                       init_model,
                       init_iter,
                       num_iter,
-                      0.5,
-                      0.7,
+                      mutate_possibility,
+                      crossover_possibility,
                       fitness_feature=fitness_feature)
     performances, solutions = map_e.run()
     logging.info('Finished performances')
     logging.info('Final performances:')
     logging.info(str(performances))
+    logging.info('Saving pytorch models...')
+    for name, model_dict in solutions.items():
+        torch.save(model_dict, 'torch_model_{}'.format(name))
 
 if __name__ == '__main__':
     run()

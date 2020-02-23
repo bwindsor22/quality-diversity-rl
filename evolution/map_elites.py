@@ -28,6 +28,7 @@ class MapElites(object):
         self.fitness = fitness
         self.feature_descriptor = feature_descriptor
         self.fitness_feature = fitness_feature
+        self.log_counts = 10
     
     def random_variation(self, is_crossover):
         logging.info('doing random varation')
@@ -39,6 +40,7 @@ class MapElites(object):
         return self.mutation(ind)
     
     def mutation(self, state):
+        logging.info('doing mutation')
         states = list(state.items())
         new_state = {}
         for l, x in states:
@@ -49,6 +51,7 @@ class MapElites(object):
         return new_state
     
     def crossover(self, x1, x2):
+        logging.info('doing crossover')
         states1 = list(x1.items())
         states2 = list(x2.items())
         child = {}
@@ -62,9 +65,9 @@ class MapElites(object):
         return child
     
     def run(self, game_level=None, is_crossover=True):
-        logging.info('Running map elites for iter, {}'.format(self.num_iter))
+        logging.info('Running map elites for iter: {}'.format(self.num_iter))
         for i in range(self.num_iter):
-            logging.info('Beginning map elites iter {}'.format(i))
+            logging.info('Beginning map elites iter: {}'.format(i))
             if i < self.num_initial_solutions:
                 self.model.__init__(*self.init_model)
                 x = self.model.state_dict()
@@ -80,4 +83,6 @@ class MapElites(object):
                 logging.info('Found better performance for feature: {}, new score: {}'.format(feature, performance))
                 self.performances[feature] = performance
                 self.solutions[feature] = x
+            if self.num_iter > self.log_counts * 5 and i % int(self.num_iter / self.log_counts) == 0:
+                logging.info('LOGGING INTERMEDIATE RESULTS {}'.format(str(self.performances)))
         return self.performances, self.solutions

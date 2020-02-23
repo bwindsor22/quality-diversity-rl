@@ -46,13 +46,7 @@ def select_action(state, policy_net, n_actions,
 
 
 def run_training_for_params(policy_net,
-                            game_level,
-                            BATCH_SIZE=128,
-                            GAMMA=0.999,
-                            TARGET_UPDATE=10,
-                            LINEAR_INPUT_SCALAR=8,
-                            KERNEL=5,
-                            EPISODES=100):
+                            game_level):
     logging.info('making level %s', game_level)
     env = gym.make(game_level)
 
@@ -63,10 +57,6 @@ def run_training_for_params(policy_net,
     _, _, screen_height, screen_width = init_screen.shape
 
     n_actions = env.action_space.n
-
-    target_net = DQN(screen_height, screen_width, LINEAR_INPUT_SCALAR, KERNEL, n_actions)
-    target_net.load_state_dict(policy_net.state_dict())
-    target_net.eval()
 
     memory = ReplayMemory(10000)
     env.reset()
@@ -91,7 +81,7 @@ def run_training_for_params(policy_net,
             next_state = None
 
         sum_score += reward
-        if t % 100 == 0:
+        if t % 200 == 0:
             logging.info('Time: {}, Reward: {}, Total Score: {}'.format(t, reward,  sum_score))
 
         # Store the transition in memory
@@ -110,7 +100,7 @@ def run_training_for_params(policy_net,
                 logging.info("Score: {}, won: {}".format(sum_score.item(), won))
             break
 
-    logging.info('Complete')
+    logging.info('Completed one level eval')
 
     env.close()
     return sum_score, won
