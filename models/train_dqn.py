@@ -75,7 +75,6 @@ def run_training_for_params(policy_net,
     target_net.eval()
 
     memory = ReplayMemory(10000)
-    results = []
     env.reset()
     last_screen = get_screen(env, device)
     current_screen = get_screen(env, device)
@@ -111,12 +110,10 @@ def run_training_for_params(policy_net,
                 won = 1
                 print("WIN \n" * 10)
                 print("Score: ", sum_score.item(), " won ", won)
-                results.append([sum_score.item(), 1])
             elif reward == -1:
                 won = 0
                 print("LOSE \n" * 10)
                 print("Score: ", sum_score.item(), " won", won)
-                results.append([sum_score.item(), 0])
             break
 
     print('Complete')
