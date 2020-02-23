@@ -34,7 +34,7 @@ SCORE_LOSING = 'score_losing'
 def get_initial_policy_net(level='gvgai-zelda-lvl0-v0', LINEAR_INPUT_SCALAR=8,
                            KERNEL=5):
     env = gym.make(level)
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = find_device()
     init_screen = get_screen(env, device)
 
     _, _, screen_height, screen_width = init_screen.shape
@@ -77,7 +77,7 @@ def run():
     policy_net, init_model = get_initial_policy_net()
     logging.info('Beginning initial map elites run')
     init_iter = 1
-    num_iter = 2000
+    num_iter = 2
     mutate_possibility = 0.7
     crossover_possibility = 0.5
     map_e = MapElites(policy_net,

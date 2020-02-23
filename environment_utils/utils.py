@@ -5,7 +5,7 @@ from datetime import datetime
 time = datetime.now().strftime("%Y-%m-%d-%H-%M-%s")
 
 def find_device():
-    return torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    return torch.device("cpu")
 
 
 def get_run_file_name():
