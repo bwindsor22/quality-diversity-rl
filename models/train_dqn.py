@@ -98,8 +98,8 @@ def run_training_for_params(policy_net,
             next_state = None
 
         sum_score += reward
-        #         if t % 100 == 0:
-        #             print("Time: ", t, " Reward: ", reward[0], "Score: ", sum_score[0], " Aliens Killed: ",aliens_killed)
+        if t % 100 == 0:
+            print("Time: ", t, " Reward: ", reward, "Total Score: ", sum_score)
 
         # Store the transition in memory
         memory.push(state, action, next_state, reward)
