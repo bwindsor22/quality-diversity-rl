@@ -56,15 +56,20 @@ def run():
         return fitness, feature_descriptor
 
     policy_net, init_model = get_initial_policy_net()
-
+    print('Beginning initial map elites run')
+    init_iter = 1
+    num_iter = 5
     map_e = MapElites(policy_net,
                       init_model,
-                      1,
-                      5,
+                      init_iter,
+                      num_iter,
                       0.5,
                       0.7,
                       fitness_feature=fitness_feature)
-    map_e.run()
+    performances, solutions = map_e.run()
+    print('Finished performances')
+    print('Final performances:')
+    print(performances)
 
 if __name__ == '__main__':
     run()

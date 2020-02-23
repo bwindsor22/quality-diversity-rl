@@ -1,5 +1,7 @@
 import random
 import torch
+import logging
+logging.basicConfig(filename='example.log',level=logging.DEBUG)
 
 class MapElites(object):
     
@@ -27,11 +29,12 @@ class MapElites(object):
         self.fitness_feature = fitness_feature
     
     def random_variation(self, is_crossover):
+        print('doing random varation')
         if is_crossover and len(self.solutions)>2:
             ind = random.sample(list(self.solutions.items()), 2)
             ind = self.crossover(ind[0][1], ind[1][1])
         else:
-            ind = random.choice(list(self.solutions.items()))[1]
+            ind = random.choice(list(self.solutions.values()))
         return self.mutation(ind)
     
     def mutation(self, state):
@@ -58,7 +61,9 @@ class MapElites(object):
         return child
     
     def run(self, game_level=None, is_crossover=True):
+        print('Running map elites for iter, {}'.format(self.num_iter))
         for i in range(self.num_iter):
+            print('Beginning map elites iter {}'.format(i))
             if i < self.num_initial_solutions:
                 self.model.__init__(*self.init_model)
                 x = self.model.state_dict()
@@ -66,11 +71,12 @@ class MapElites(object):
                 x = self.random_variation(is_crossover)
             self.model.load_state_dict(x)
             if self.fitness_feature is not None:
-                performance, features = self.fitness_feature(self.model)
+                performance, feature = self.fitness_feature(self.model)
             else:
-                features = self.feature_descriptor(x)
+                feature = self.feature_descriptor(x)
                 performance = self.fitness(self.model, game_level)
-            if features not in self.performances or self.performances[features] < performance:
-                self.performances[features] = performance
-                self.solutions[features] = x
+            if feature not in self.performances or self.performances[feature] < performance:
+                print('Found better performance for feature: {}, new score: {}'.format(feature, performance))
+                self.performances[feature] = performance
+                self.solutions[feature] = x
         return self.performances, self.solutions
