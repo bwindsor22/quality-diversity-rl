@@ -57,10 +57,10 @@ class MapElites(object):
                 child[l_1] = random.choice(s_1, s_2)
         return child
     
-    def run(self, game_level, is_crossover):
+    def run(self, game_level=None, is_crossover=True):
         for i in range(self.num_iter):
             if i < self.num_initial_solutions:
-                self.model.__init__(self.init_model)
+                self.model.__init__(*self.init_model)
                 x = self.model.state_dict()
             else:
                 x = self.random_variation(is_crossover)
