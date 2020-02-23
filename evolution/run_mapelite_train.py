@@ -52,7 +52,7 @@ def run():
             wins.append(win)
 
         fitness = scores
-        feature_descriptor = '-'.join(wins)
+        feature_descriptor = '-'.join([str(i) for i in wins])
         return fitness, feature_descriptor
 
     policy_net, init_model = get_initial_policy_net()
