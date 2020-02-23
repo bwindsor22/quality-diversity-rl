@@ -61,7 +61,7 @@ class MapElites(object):
             if l_1[0:4] == "conv:":
                 child1[l_1] = np.random.choice([s_1, s_2], p=[self.cross_poss, 1 - self.cross_poss])
             else:
-                child[l_1] = random.choice(s_1, s_2)
+                child[l_1] = random.choice([s_1, s_2])
         return child
     
     def run(self, game_level=None, is_crossover=True):
