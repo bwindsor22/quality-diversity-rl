@@ -17,17 +17,13 @@ from IPython import display
 from models.dqn import DQN
 from models.replay_memory import ReplayMemory, Transition
 from models.gvg_utils import get_screen
+from environment_utils.utils import get_run_file_name, find_device
+import logging
+logging.basicConfig(filename=get_run_file_name(),level=logging.INFO)
 
 steps_done = 0
-is_ipython = 'inline' in matplotlib.get_backend()
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-resize = T.Compose([T.ToPILImage(),
-                    T.Resize(30),
-                    T.ToTensor()])
-
-plt.ion()
+device = find_device()
 
 
 def select_action(state, policy_net, n_actions,
@@ -57,7 +53,7 @@ def run_training_for_params(policy_net,
                             LINEAR_INPUT_SCALAR=8,
                             KERNEL=5,
                             EPISODES=100):
-    print('making level', game_level)
+    logging.info('making level %s', game_level)
     env = gym.make(game_level)
 
     global steps_done
@@ -65,8 +61,6 @@ def run_training_for_params(policy_net,
 
     init_screen = get_screen(env, device)
     _, _, screen_height, screen_width = init_screen.shape
-
-    print(screen_height, " ", screen_width)
 
     n_actions = env.action_space.n
 
@@ -98,7 +92,7 @@ def run_training_for_params(policy_net,
 
         sum_score += reward
         if t % 100 == 0:
-            print("Time: ", t, " Reward: ", reward, "Total Score: ", sum_score)
+            logging.info('Time: {}, Reward: {}, Total Score: {}'.format(t, reward,  sum_score))
 
         # Store the transition in memory
         memory.push(state, action, next_state, reward)
@@ -108,26 +102,25 @@ def run_training_for_params(policy_net,
         if done:
             if reward == 1:
                 won = 1
-                print("WIN \n" * 10)
-                print("Score: ", sum_score.item(), " won ", won)
+                logging.info('WIN')
+                logging.info("Score: {}, won: {}".format(sum_score.item(), won))
             elif reward == -1:
                 won = 0
-                print("LOSE \n" * 10)
-                print("Score: ", sum_score.item(), " won", won)
+                logging.info('LOSE')
+                logging.info("Score: {}, won: {}".format(sum_score.item(), won))
             break
 
-    print('Complete')
+    logging.info('Complete')
 
     env.close()
     return sum_score, won
 
 
 if __name__ == '__main__':
-    print('running main')
+    logging.info('running main')
     def get_initial_policy_net(LINEAR_INPUT_SCALAR=8,
                                KERNEL=5):
         env = gym.make('gvgai-zelda-lvl0-v0')
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         init_screen = get_screen(env, device)
 
         _, _, screen_height, screen_width = init_screen.shape

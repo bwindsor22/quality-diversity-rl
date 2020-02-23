@@ -21,6 +21,11 @@ from models.gvg_utils import get_screen
 from models.gvg_utils import get_screen
 from models.replay_memory import ReplayMemory, Transition
 from models.train_dqn import run_training_for_params
+from environment_utils.utils import get_run_file_name, find_device
+import logging
+logging.basicConfig(filename=get_run_file_name(),level=logging.INFO)
+logging.getLogger().addHandler(logging.StreamHandler())
+
 
 SCORE_ALL = 'score_all'
 SCORE_WINNING = 'score_winning'
@@ -70,7 +75,7 @@ def run():
 
 
     policy_net, init_model = get_initial_policy_net()
-    print('Beginning initial map elites run')
+    logging.info('Beginning initial map elites run')
     init_iter = 1
     num_iter = 10
     map_e = MapElites(policy_net,
@@ -81,9 +86,9 @@ def run():
                       0.7,
                       fitness_feature=fitness_feature)
     performances, solutions = map_e.run()
-    print('Finished performances')
-    print('Final performances:')
-    print(performances)
+    logging.info('Finished performances')
+    logging.info('Final performances:')
+    logging.info(str(performances))
 
 if __name__ == '__main__':
     run()
