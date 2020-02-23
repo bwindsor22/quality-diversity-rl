@@ -77,7 +77,7 @@ def run():
     policy_net, init_model = get_initial_policy_net()
     logging.info('Beginning initial map elites run')
     init_iter = 1
-    num_iter = 2
+    num_iter = 2000
     mutate_possibility = 0.7
     crossover_possibility = 0.5
     map_e = MapElites(policy_net,

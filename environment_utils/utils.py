@@ -10,3 +10,6 @@ def find_device():
 
 def get_run_file_name():
     return '{}-runfile.log'.format(time)
+
+def get_run_name():
+    return time
