@@ -21,7 +21,7 @@ from models.gvg_utils import get_screen
 from models.gvg_utils import get_screen
 from models.replay_memory import ReplayMemory, Transition
 from models.train_dqn import run_training_for_params
-from environment_utils.utils import get_run_file_name, find_device
+from environment_utils.utils import get_run_file_name, get_run_name, find_device
 import logging
 logging.basicConfig(filename=get_run_file_name(),level=logging.INFO)
 logging.getLogger().addHandler(logging.StreamHandler())
@@ -93,7 +93,7 @@ def run():
     logging.info(str(performances))
     logging.info('Saving pytorch models...')
     for name, model_dict in solutions.items():
-        torch.save(model_dict, 'torch_model_{}'.format(name))
+        torch.save(model_dict, 'torch_model_{}_{}'.format(get_run_name(), name))
 
 if __name__ == '__main__':
     run()
