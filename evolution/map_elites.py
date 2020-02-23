@@ -10,8 +10,9 @@ class MapElites(object):
                  num_iter,
                  mutate_poss,
                  cross_poss,
-                 fitness,
-                 feature_descriptor):
+                 fitness=None,
+                 feature_descriptor=None,
+                 fitness_feature=None):
         
         self.solutions = {}
         self.performances = {}
@@ -23,7 +24,7 @@ class MapElites(object):
         self.cross_poss = cross_poss
         self.fitness = fitness
         self.feature_descriptor = feature_descriptor
-        
+        self.fitness_feature = fitness_feature
     
     def random_variation(self, is_crossover):
         if is_crossover and len(self.solutions)>2:
@@ -64,9 +65,12 @@ class MapElites(object):
             else:
                 x = self.random_variation(is_crossover)
             self.model.load_state_dict(x)
-            b = self.feature_descriptor(x)
-            p = self.fitness(self.model, game_level)
-            if b not in self.performances or self.performances[b] < p:
-                self.performances[b] = p
-                self.solutions[b] = x
+            if self.fitness_feature is not None:
+                performance, features = self.fitness_feature(self.model)
+            else:
+                features = self.feature_descriptor(x)
+                performance = self.fitness(self.model, game_level)
+            if features not in self.performances or self.performances[features] < performance:
+                self.performances[features] = performance
+                self.solutions[features] = x
         return self.performances, self.solutions
