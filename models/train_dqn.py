@@ -80,6 +80,7 @@ def run_training_for_params(policy_net,
     current_screen = get_screen(env, device)
     state = current_screen - last_screen
     sum_score = 0
+    won = 0
 
     for t in count():
         action = select_action(state, policy_net)
@@ -105,21 +106,21 @@ def run_training_for_params(policy_net,
         state = next_state
         if done:
             if reward == 2:
+                won = 1
                 print("WIN \n" * 10)
-                print("Score: ", sum_score.item(), " Aliens Killed: ", aliens_killed)
+                print("Score: ", sum_score.item(), " won ", won)
                 results.append([sum_score.item(), 1])
             elif reward == -1:
+                won = 0
                 print("LOSE \n" * 10)
-                print("Score: ", sum_score.item(), " Aliens Killed: ", aliens_killed)
+                print("Score: ", sum_score.item(), " won", won)
                 results.append([sum_score.item(), 0])
             break
 
     print('Complete')
-    final_result = results[-1]
 
-    sum_all_scores = sum(r[0] for r in results)
     env.close()
-    return sum_all_scores
+    return sum_score, won
 
 
 if __name__ == '__main__':
