@@ -57,6 +57,7 @@ def run_training_for_params(policy_net,
                             LINEAR_INPUT_SCALAR=8,
                             KERNEL=5,
                             EPISODES=100):
+    print('making level', game_level)
     env = gym.make(game_level)
 
     global steps_done
@@ -105,7 +106,7 @@ def run_training_for_params(policy_net,
         # Move to the next state
         state = next_state
         if done:
-            if reward == 2:
+            if reward == 1:
                 won = 1
                 print("WIN \n" * 10)
                 print("Score: ", sum_score.item(), " won ", won)
@@ -124,10 +125,12 @@ def run_training_for_params(policy_net,
 
 
 if __name__ == '__main__':
+    print('running main')
     def get_initial_policy_net(level='gvgai-zelda-lvl0-v0', LINEAR_INPUT_SCALAR=8,
                                KERNEL=5):
         env = gym.make(level)
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        init_screen = get_screen(env, device)
 
         _, _, screen_height, screen_width = init_screen.shape
         n_actions = env.action_space.n

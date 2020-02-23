@@ -1,3 +1,11 @@
+import numpy as np
+import torch
+import torchvision.transforms as T
+
+resize = T.Compose([T.ToPILImage(),
+                    T.Resize(30),
+                    T.ToTensor()])
+
 def get_screen(env, device):
     screen = env.render(mode='rgb_array').transpose((2, 0, 1))
 
