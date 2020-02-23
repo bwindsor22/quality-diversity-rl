@@ -1,6 +1,7 @@
 import random
 import torch
 import logging
+import numpy as np
 from environment_utils.utils import get_run_file_name
 logging.basicConfig(filename=get_run_file_name(),level=logging.INFO)
 
@@ -58,8 +59,8 @@ class MapElites(object):
         for s1, s2 in zip(states1, states2):
             l_1, s_1 = s1
             l_2, s_2 = s2
-            if l_1[0:4] == "conv:":
-                child1[l_1] = np.random.choice([s_1, s_2], p=[self.cross_poss, 1 - self.cross_poss])
+            if l_1[0:4] == "conv":
+                child[l_1] = np.random.choice([s_1, s_2], p=[self.cross_poss, 1 - self.cross_poss])
             else:
                 child[l_1] = random.choice([s_1, s_2])
         return child
