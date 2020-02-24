@@ -56,16 +56,16 @@ def combine_scores(scores, score, win, mode):
     return scores
 
 def run():
-    def fitness_feature(policy_net, env_maker=None):
+    def fitness_feature(policy_net):
         """
         Calculate fitess and feature descriptor simultaneously
+        :param policy_net:
+        :return:
         """
         scores = 0
         wins = []
         for lvl in range(5):
-            score, win = run_training_for_params(policy_net,
-                                                 game_level='gvgai-zelda-lvl{}-v0'.format(lvl),
-                                                 env_maker=env_maker)
+            score, win = run_training_for_params(policy_net, game_level='gvgai-zelda-lvl{}-v0'.format(lvl))
             scores = combine_scores(scores, score, win, SCORE_ALL)
             wins.append(win)
 
