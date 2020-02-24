@@ -46,9 +46,11 @@ def select_action(state, policy_net, n_actions,
 
 
 def run_training_for_params(policy_net,
-                            game_level):
+                            game_level,
+                            env_maker=None):
     logging.info('making level %s', game_level)
-    env = gym.make(game_level)
+
+    env = env_maker.make(game_level) if env_maker else gym.make(game_level)
 
     global steps_done
     steps_done = 0

@@ -3,6 +3,7 @@ import torch
 import logging
 import numpy as np
 from environment_utils.utils import get_run_file_name
+from models.caching_environment_maker import CachingEnvironmentMaker
 logging.basicConfig(filename=get_run_file_name(),level=logging.INFO)
 
 class MapElites(object):
@@ -30,6 +31,7 @@ class MapElites(object):
         self.feature_descriptor = feature_descriptor
         self.fitness_feature = fitness_feature
         self.log_counts = 10
+        self.env_maker = CachingEnvironmentMaker()
     
     def random_variation(self, is_crossover):
         logging.info('doing random varation')
@@ -79,7 +81,7 @@ class MapElites(object):
                 x = self.random_variation(is_crossover)
             self.model.load_state_dict(x)
             if self.fitness_feature is not None:
-                performance, feature = self.fitness_feature(self.model)
+                performance, feature = self.fitness_feature(self.model, env_maker=self.env_maker)
             else:
                 feature = self.feature_descriptor(x)
                 performance = self.fitness(self.model, game_level)
