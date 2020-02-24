@@ -62,7 +62,10 @@ class MapElites(object):
             l_1, s_1 = s1
             l_2, s_2 = s2
             if l_1[0:4] == "conv":
-                child[l_1] = np.random.choice([s_1, s_2], p=[self.cross_poss, 1 - self.cross_poss])
+                if random.random() <= self.cross_poss:
+                    child[l_1] = s_1
+                else:
+                    child[l_1] = s_2
             else:
                 child[l_1] = random.choice([s_1, s_2])
         return child
