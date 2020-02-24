@@ -68,7 +68,7 @@ def run_training_for_params(policy_net,
 
     for t in count():
         action = select_action(state, policy_net, n_actions)
-        _, reward, done, _ = env.step(action.item())
+        _, reward, done, info = env.step(action.item())
         reward = torch.tensor([reward], device=device)
 
 
@@ -90,11 +90,11 @@ def run_training_for_params(policy_net,
         # Move to the next state
         state = next_state
         if done:
-            if reward == 1:
+            if info['winner'] == "PLAYER_WINS":
                 won = 1
                 logging.info('WIN')
                 logging.info("Score: {}, won: {}".format(sum_score.item(), won))
-            elif reward == -1:
+            elif info['winner'] == "PLAYER_LOSES":
                 won = 0
                 logging.info('LOSE')
                 logging.info("Score: {}, won: {}".format(sum_score.item(), won))
