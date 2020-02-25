@@ -15,7 +15,6 @@ import torchvision.transforms as T
 from IPython import display
 
 from models.dqn import DQN
-from models.replay_memory import ReplayMemory, Transition
 from models.gvg_utils import get_screen
 from environment_utils.utils import get_run_file_name, find_device
 import logging
@@ -58,7 +57,6 @@ def run_training_for_params(policy_net,
 
     n_actions = env.action_space.n
 
-    memory = ReplayMemory(10000)
     env.reset()
     last_screen = get_screen(env, device)
     current_screen = get_screen(env, device)
@@ -84,8 +82,6 @@ def run_training_for_params(policy_net,
         if t % 200 == 0:
             logging.info('Time: {}, Reward: {}, Total Score: {}'.format(t, reward,  sum_score))
 
-        # Store the transition in memory
-        memory.push(state, action, next_state, reward)
 
         # Move to the next state
         state = next_state
