@@ -26,7 +26,7 @@ device = find_device()
 
 
 def select_action(state, policy_net, n_actions,
-                  EPS_START=0.9,
+                  EPS_START=0.05,
                   EPS_END=0.05,
                   EPS_DECAY=200,
                   ):
