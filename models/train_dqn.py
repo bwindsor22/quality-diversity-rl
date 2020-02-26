@@ -90,7 +90,7 @@ def run_training_for_params(policy_net,
                 won = 1
                 logging.info('WIN')
                 logging.info("Score: {}, won: {}".format(sum_score.item(), won))
-            elif info['winner'] == "PLAYER_LOSES":
+            else:
                 won = 0
                 logging.info('LOSE')
                 logging.info("Score: {}, won: {}".format(sum_score.item(), won))
