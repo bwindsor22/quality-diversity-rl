@@ -104,8 +104,8 @@ def run_training_for_params(policy_net,
 
 if __name__ == '__main__':
     logging.info('running main')
-    def get_initial_policy_net(LINEAR_INPUT_SCALAR=8,
-                               KERNEL=5):
+    def get_initial_policy_net(LINEAR_INPUT_SCALAR=32,
+                               KERNEL=10):
         env = gym.make('gvgai-zelda-lvl0-v0')
         init_screen = get_screen(env, device)
 
