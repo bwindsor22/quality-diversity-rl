@@ -79,6 +79,8 @@ def run_training_for_params(policy_net,
             next_state = None
 
         sum_score += reward
+        
+        
         if t % 200 == 0:
             logging.info('Time: {}, Reward: {}, Total Score: {}'.format(t, reward,  sum_score))
 
@@ -90,12 +92,15 @@ def run_training_for_params(policy_net,
                 won = 1
                 logging.info('WIN')
                 logging.info("Score: {}, won: {}".format(sum_score.item(), won))
-            elif info['winner'] == "PLAYER_LOSES":
+            else:
                 won = 0
                 logging.info('LOSE')
                 logging.info("Score: {}, won: {}".format(sum_score.item(), won))
             break
-
+        
+        #if t==249:
+            #break
+        
     logging.info('Completed one level eval')
 
     env.close()
