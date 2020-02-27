@@ -65,7 +65,7 @@ class MapElites(object):
             child[l_1] = random.choice([s_1, s_2])
         return child
     
-    def run(self, game_level=None, is_crossover=True):
+    def run(self, game_level=None, is_crossover=False):
         logging.info('Running map elites for iter: {}'.format(self.num_iter))
         for i in range(self.num_iter):
             logging.info('Beginning map elites iter: {}'.format(i))
