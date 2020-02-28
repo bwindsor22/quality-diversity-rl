@@ -45,10 +45,14 @@ class MapElites(object):
         states = list(state.items())
         new_state = {}
         for l, x in states:
-            if l[0:4] == "conv":
+            if l[0:4] == 'conv' and l[-1] == 't':
+                std = np.sqrt(2 / (x.shape[1] * x.shape[2] * x.shape[3]))
+                new_state[l] = torch.where(torch.rand_like(x) > self.mutate_poss, torch.randn_like(x) * std, x)
+            if l[0:4] == 'head' and l[-1] == 't':
+                np.sqrt(2 / x.shape[1])
+                new_state[l] = torch.where(torch.rand_like(x) > self.mutate_poss, torch.randn_like(x) * std, x)
+            if l[-1] =='s':
                 new_state[l] = torch.where(torch.rand_like(x) > self.mutate_poss, torch.randn_like(x), x)
-            else:
-                new_state[l] = x
         return new_state
     
     def crossover(self, x1, x2):
