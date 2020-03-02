@@ -32,7 +32,7 @@ SCORE_WINNING = 'score_winning'
 SCORE_LOSING = 'score_losing'
 
 def get_initial_policy_net(level='gvgai-zelda-lvl0-v0', LINEAR_INPUT_SCALAR=8,
-                           KERNEL=5):
+                           KERNEL=11):
     env = gym.make(level)
     device = find_device()
     init_screen = get_screen(env, device)
@@ -81,12 +81,14 @@ def run():
     #num_iter = 4000
     mutate_possibility = 0.7
     crossover_possibility = 0.5
+    max_age = 750
     map_e = MapElites(policy_net,
                       init_model,
                       init_iter,
                       num_iter,
                       mutate_possibility,
                       crossover_possibility,
+                      max_age,
                       fitness_feature=fitness_feature)
     performances, solutions = map_e.run()
     logging.info('Finished performances')
