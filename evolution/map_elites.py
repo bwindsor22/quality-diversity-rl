@@ -14,12 +14,15 @@ class MapElites(object):
                  num_iter,
                  mutate_poss,
                  cross_poss,
+                 max_age,
                  fitness=None,
                  feature_descriptor=None,
                  fitness_feature=None):
         
         self.solutions = {}
         self.performances = {}
+        self.ages = {}
+        self.max_age = max_age
         self.model = model
         self.init_model = init_model
         self.num_initial_solutions = init_iter
@@ -65,6 +68,15 @@ class MapElites(object):
             child[l_1] = random.choice([s_1, s_2])
         return child
     
+    def check_mortality(self):
+        for item in self.ages.items():
+            if item[1] >= self.max_age:
+                self.performances.pop(item[0],None)
+                self.solutions.pop(item[0],None)
+                self.ages.pop(item[0],None)
+            else:
+                self.ages[item[0]]+=1
+
     def run(self, game_level=None, is_crossover=False):
         logging.info('Running map elites for iter: {}'.format(self.num_iter))
         for i in range(self.num_iter):
@@ -84,6 +96,7 @@ class MapElites(object):
                 logging.info('Found better performance for feature: {}, new score: {}'.format(feature, performance))
                 self.performances[feature] = performance
                 self.solutions[feature] = x
+                self.ages[feature] = 0
             if self.num_iter > self.log_counts * 5 and i % int(self.num_iter / self.log_counts) == 0:
                 logging.info('LOGGING INTERMEDIATE RESULTS {}'.format(str(self.performances)))
         return self.performances, self.solutions
