@@ -81,6 +81,7 @@ class MapElites(object):
         logging.info('Running map elites for iter: {}'.format(self.num_iter))
         for i in range(self.num_iter):
             logging.info('Beginning map elites iter: {}'.format(i))
+            self.check_mortality()
             if i < self.num_initial_solutions:
                 self.model.__init__(*self.init_model)
                 x = self.model.state_dict()
