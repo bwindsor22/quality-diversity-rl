@@ -4,7 +4,6 @@ import logging
 import numpy as np
 from environment_utils.utils import get_run_file_name
 from models.caching_environment_maker import CachingEnvironmentMaker
-logging.basicConfig(filename=get_run_file_name(),level=logging.INFO)
 
 class MapElites(object):
     
@@ -18,7 +17,7 @@ class MapElites(object):
                  fitness=None,
                  feature_descriptor=None,
                  fitness_feature=None):
-        
+
         self.solutions = {}
         self.performances = {}
         self.model = model
@@ -31,8 +30,8 @@ class MapElites(object):
         self.feature_descriptor = feature_descriptor
         self.fitness_feature = fitness_feature
         self.log_counts = 10
-        self.env_maker = CachingEnvironmentMaker()
-    
+        self.env_maker = None
+
     def random_variation(self, is_crossover):
         logging.info('doing random varation')
         if is_crossover and len(self.solutions)>2:
