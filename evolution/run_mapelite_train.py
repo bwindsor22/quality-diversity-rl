@@ -120,7 +120,7 @@ def run(num_iter, score_strategy, game, stop_after, save_model):
     performances, solutions = map_e.run()
     logging.info('Finished performances')
     logging.info('Final performances:')
-    logging.info(json.dumps(performances))
+    logging.info(str(performances))
     if save_model:
         logging.info('Saving pytorch models...')
         for agent_name, model_dict in solutions.items():
