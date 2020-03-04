@@ -69,20 +69,20 @@ class MapElites(object):
         return child
     
     def check_mortality(self):
-        for item in self.ages.items():
-            if item[1] >= self.max_age:
-                self.performances.pop(item[0],None)
-                self.solutions.pop(item[0],None)
-                self.ages.pop(item[0],None)
+        for key,value in list(self.ages.items()):
+            if value >= self.max_age:
+                del self.performances[key]
+                del self.solutions[key]
+                del self.ages[key]
             else:
-                self.ages[item[0]]+=1
+                self.ages[key] += 1
 
     def run(self, game_level=None, is_crossover=False):
         logging.info('Running map elites for iter: {}'.format(self.num_iter))
         for i in range(self.num_iter):
             logging.info('Beginning map elites iter: {}'.format(i))
             self.check_mortality()
-            if i < self.num_initial_solutions:
+            if i < self.num_initial_solutions or len(self.solutions) ==0:
                 self.model.__init__(*self.init_model)
                 x = self.model.state_dict()
             else:
