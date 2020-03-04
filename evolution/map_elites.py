@@ -55,19 +55,16 @@ class MapElites(object):
     
     def crossover(self, x1, x2):
         logging.info('doing crossover')
+        if random.random() < self.cross_poss:
+            return random.choice([x1, x2])
         states1 = list(x1.items())
         states2 = list(x2.items())
         child = {}
         for s1, s2 in zip(states1, states2):
             l_1, s_1 = s1
             l_2, s_2 = s2
-            if l_1[0:4] == "conv":
-                if random.random() <= self.cross_poss:
-                    child[l_1] = s_1
-                else:
-                    child[l_1] = s_2
-            else:
-                child[l_1] = random.choice([s_1, s_2])
+            print("Crossovering")
+            child[l_1] = random.choice([s_1, s_2])
         return child
     
     def run(self, game_level=None, is_crossover=True):

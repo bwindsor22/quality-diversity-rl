@@ -15,7 +15,6 @@ import torchvision.transforms as T
 from IPython import display
 
 from models.dqn import DQN
-from models.replay_memory import ReplayMemory, Transition
 from models.gvg_utils import get_screen
 from environment_utils.utils import get_run_file_name, find_device
 import logging
@@ -27,7 +26,7 @@ device = find_device()
 
 
 def select_action(state, policy_net, n_actions,
-                  EPS_START=0.9,
+                  EPS_START=0.05,
                   EPS_END=0.05,
                   EPS_DECAY=200,
                   ):
@@ -60,7 +59,6 @@ def run_training_for_params(policy_net,
 
     n_actions = env.action_space.n
 
-    memory = ReplayMemory(10000)
     env.reset()
     last_screen = get_screen(env, device)
     current_screen = get_screen(env, device)
@@ -70,7 +68,7 @@ def run_training_for_params(policy_net,
 
     for t in count():
         action = select_action(state, policy_net, n_actions)
-        _, reward, done, _ = env.step(action.item())
+        _, reward, done, info = env.step(action.item())
         reward = torch.tensor([reward], device=device)
 
 
@@ -86,17 +84,15 @@ def run_training_for_params(policy_net,
         if t % 200 == 0:
             logging.info('Time: {}, Reward: {}, Total Score: {}'.format(t, reward,  sum_score))
 
-        # Store the transition in memory
-        memory.push(state, action, next_state, reward)
 
         # Move to the next state
         state = next_state
         if done:
-            if reward == 1:
+            if info['winner'] == "PLAYER_WINS":
                 won = 1
                 logging.info('WIN')
                 logging.info("Score: {}, won: {}".format(sum_score.item(), won))
-            elif reward == -1:
+            elif info['winner'] == "PLAYER_LOSES":
                 won = 0
                 logging.info('LOSE')
                 logging.info("Score: {}, won: {}".format(sum_score.item(), won))

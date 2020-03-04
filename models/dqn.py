@@ -9,11 +9,8 @@ class DQN(nn.Module):
 
         half_scalar = int(linear_input_scalar / 2)
         self.conv1 = nn.Conv2d(3, half_scalar, kernel_size=kernel_size, stride=2)
-        self.bn1 = nn.BatchNorm2d(half_scalar)
         self.conv2 = nn.Conv2d(half_scalar, linear_input_scalar, kernel_size=kernel_size, stride=2)
-        self.bn2 = nn.BatchNorm2d(linear_input_scalar)
         self.conv3 = nn.Conv2d(linear_input_scalar, linear_input_scalar, kernel_size=kernel_size, stride=2)
-        self.bn3 = nn.BatchNorm2d(linear_input_scalar)
 
         # Number of Linear input connections depends on output of conv2d layers
         # and therefore the input image size, so compute it.
@@ -30,7 +27,7 @@ class DQN(nn.Module):
     # Called with either one element to determine next action, or a batch
     # during optimization. Returns tensor([[left0exp,right0exp]...]).
     def forward(self, x):
-        x = F.relu(self.bn1(self.conv1(x)))
-        x = F.relu(self.bn2(self.conv2(x)))
-        x = F.relu(self.bn3(self.conv3(x)))
+        x = F.relu(self.conv1(x))
+        x = F.relu(self.conv2(x))
+        x = F.relu(self.conv3(x))
         return self.head(x.view(x.size(0), -1))
