@@ -18,7 +18,6 @@ from models.dqn import DQN
 from models.gvg_utils import get_screen
 from environment_utils.utils import get_run_file_name, find_device
 import logging
-logging.basicConfig(filename=get_run_file_name(),level=logging.INFO)
 
 steps_done = 0
 
@@ -44,10 +43,15 @@ def select_action(state, policy_net, n_actions,
         return torch.tensor([[random.randrange(n_actions)]], device=device, dtype=torch.long)
 
 
-def run_training_for_params(policy_net,
-                            game_level):
+def evaluate_net(policy_net,
+                 game_level,
+                 env_maker=None,
+                 stop_after=None,
+                 ):
+
     logging.info('making level %s', game_level)
-    env = gym.make(game_level)
+
+    env = env_maker.make(game_level) if env_maker else gym.make(game_level)
 
     global steps_done
     steps_done = 0
@@ -85,7 +89,7 @@ def run_training_for_params(policy_net,
 
         # Move to the next state
         state = next_state
-        if done:
+        if done or (stop_after and t >= int(stop_after)):
             if info['winner'] == "PLAYER_WINS":
                 won = 1
                 logging.info('WIN')
@@ -94,6 +98,9 @@ def run_training_for_params(policy_net,
                 won = 0
                 logging.info('LOSE')
                 logging.info("Score: {}, won: {}".format(sum_score.item(), won))
+            else:
+                won = 0
+                logging.info('Breaking net eval early at {} steps'.format(t))
             break
 
     logging.info('Completed one level eval')
@@ -117,4 +124,4 @@ if __name__ == '__main__':
         return policy_net, init_model
     net, model = get_initial_policy_net()
 
-    run_training_for_params(net, 'gvgai-zelda-lvl0-v0')
+    evaluate_net(net, 'gvgai-zelda-lvl0-v0')

@@ -1,6 +1,6 @@
 import random
 
-from models.train_dqn import run_training_for_params
+from models.train_dqn import evaluate_net
 
 
 class ParamsAgent:
@@ -65,8 +65,8 @@ class GeneticEvolver:
 
     def eval_agent(self, agent, file):
         file.write('\nEVALUATING AGENT' + str(agent))
-        score_after_training = run_training_for_params(BATCH_SIZE=agent.BATCH_SIZE,
-                                                       LINEAR_INPUT_SCALAR=agent.LINEAR_INPUT_SCALAR)
+        score_after_training = evaluate_net(BATCH_SIZE=agent.BATCH_SIZE,
+                                            LINEAR_INPUT_SCALAR=agent.LINEAR_INPUT_SCALAR)
         return score_after_training
 
     def generate_rank_selection_lookup(self, ranked_agents):
