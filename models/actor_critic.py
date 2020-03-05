@@ -29,8 +29,6 @@ class a2c(nn.Module):
         self.saved_actions = []
         self.rewards = []
 
-    # Called with either one element to determine next action, or a batch
-    # during optimization. Returns tensor([[left0exp,right0exp]...]).
     def forward(self, x):
         x = F.relu(self.conv1(x))
         x = F.relu(self.conv2(x))
