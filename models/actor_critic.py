@@ -2,6 +2,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
+
 class a2c(nn.Module):
 
     def __init__(self, h, w, linear_input_scalar, kernel_size, outputs):
@@ -33,7 +34,7 @@ class a2c(nn.Module):
         x = F.relu(self.conv1(x))
         x = F.relu(self.conv2(x))
         x = F.relu(self.conv3(x))
-        action_prob = F.softmax(self.fc1(x.view(x.size(0), -1)))
-        state_values = self.fc2(x.view(x.size(0), -1))
+        action_prob = F.softmax(self.actor(x.view(x.size(0), -1)),dim =-1)
+        state_values = self.critic(x.view(x.size(0), -1))
 
         return action_prob, state_values
