@@ -26,7 +26,8 @@ from models.gvg_utils import get_screen
 from models.replay_memory import ReplayMemory, Transition
 from models.train_dqn import evaluate_net
 from environment_utils.utils import get_run_file_name, get_run_name, find_device
-
+import threading
+logging.basicConfig(filename=get_run_file_name(),level=logging.INFO,format='[%(levelname)s] (%(threadName)-10s) %(message)s',)
 
 
 SCORE_ALL = 'score_all'
