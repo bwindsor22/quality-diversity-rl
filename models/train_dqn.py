@@ -102,7 +102,7 @@ def evaluate_net(policy_net,
                 logging.info("Score: {}, won: {}".format(sum_score.item(), won))
             else:
                 won = 0
-                logging.info('Breaking net eval early at {} steps'.format(t))
+                logging.info('Eval net stopped at {} steps'.format(t))
             break
 
     logging.info('Completed one level eval')
