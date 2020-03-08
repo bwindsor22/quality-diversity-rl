@@ -9,8 +9,9 @@ pip install -r requirements.txt
 echo "installing gym"
 GYM_DIR=GVGAI_GYM_BAM
 if [ -d "$GYM_DIR" ]; then rm -Rf $GYM_DIR; fi
-cd GVGAI_GYM_BAM
+mkdir $GYM_DIR
+cd $GYM_DIR
 git clone https://github.com/Bam4d/GVGAI_GYM.git
 cd GVGAI_GYM/python/gvgai
 pip install -e .
-cd ../../../
+cd ../../../../
