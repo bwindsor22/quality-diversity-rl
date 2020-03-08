@@ -1,15 +1,16 @@
 #!/usr/bin/env bash
 echo "creating environment"
-python -m venv qd-env
-source qd-env/bin/activate
+python -m venv qd-bam4d-env
+source qd-bam4d-env/bin/activate
 
 echo "installing basic files"
 pip install -r requirements.txt
 
 echo "installing gym"
-GYM_DIR=GVGAI_GYM
+GYM_DIR=GVGAI_GYM_BAM
 if [ -d "$GYM_DIR" ]; then rm -Rf $GYM_DIR; fi
-git clone https://github.com/rubenrtorrado/GVGAI_GYM.git
-cd GVGAI_GYM
+cd GVGAI_GYM_BAM
+git clone https://github.com/Bam4d/GVGAI_GYM.git
+cd GVGAI_GYM/python/gvgai
 pip install -e .
-cd ..
+cd ../../../
