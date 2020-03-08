@@ -34,9 +34,10 @@ class CachingEnvironmentMaker:
         try:
         # if True:
             self.test_env(env)
+            logging.info('found env in cache')
             return
         except Exception:
-            logger.info('Cached env failed, remaking env')
+            logging.info('Cached env failed, remaking env')
 
         self.cache[level] = self.try_to_make(level)
 
@@ -48,9 +49,9 @@ class CachingEnvironmentMaker:
                 self.test_env(env)
                 return env
             except Exception as e:
-                logger.info('Failed making environment, attempt %d, err %s',
+                logging.info('Failed making environment, attempt %d, err %s',
                             att, str(e))
-        logger.error('Unable to make env after %d attempts', self.make_env_attempts)
+        logging.error('Unable to make env after %d attempts', self.make_env_attempts)
 
     def test_env(self, env):
         env.reset()
