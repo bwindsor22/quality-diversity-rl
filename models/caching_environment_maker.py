@@ -9,7 +9,7 @@ class CachingEnvironmentMaker:
     Speeds up repeat calls to env.make.
     Stores the old environment so python doesn't have to recreate and reconnect.
     """
-    def __init__(self, version=GVGAI_RUBEN, make_env_attempts=1):
+    def __init__(self, version=GVGAI_RUBEN, make_env_attempts=100):
         if version == GVGAI_RUBEN:
             #usually runs, slower
             import gym_gvgai
