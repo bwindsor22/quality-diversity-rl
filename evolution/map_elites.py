@@ -3,6 +3,7 @@ import torch
 import logging
 import numpy as np
 from environment_utils.utils import get_run_file_name
+import threading
 
 class MapElites(object):
     
@@ -63,26 +64,41 @@ class MapElites(object):
             print("Crossovering")
             child[l_1] = random.choice([s_1, s_2])
         return child
+
+    def me_iteration(self,is_crossover):
+        if len(self.solutions) < self.num_initial_solutions:
+            self.model.__init__(*self.init_model)
+            x = self.model.state_dict()
+        else:
+            x = self.random_variation(is_crossover)
+        self.model.load_state_dict(x)
+        if self.fitness_feature is not None:
+            performance, feature = self.fitness_feature(self.model)
+        else:
+            feature = self.feature_descriptor(x)
+            performance = self.fitness(self.model, game_level)
+        if feature not in self.performances or self.performances[feature] < performance:
+            logging.info('Found better performance for feature: {}, new score: {}'.format(feature, performance))
+            self.performances[feature] = performance
+            self.solutions[feature] = x 
+
     
-    def run(self, game_level=None, is_crossover=True):
+    def run(self, game_level=None, is_crossover=False):
+        logging.info('Running map elites for iter: {}'.format(self.num_iter))
+        threads = []
+        num_threads = 12
         logging.info('Running map elites for iter: {}'.format(self.num_iter))
         for i in range(self.num_iter):
+            print(i)
             logging.info('Beginning map elites iter: {}'.format(i))
-            if i < self.num_initial_solutions:
-                self.model.__init__(*self.init_model)
-                x = self.model.state_dict()
-            else:
-                x = self.random_variation(is_crossover)
-            self.model.load_state_dict(x)
-            if self.fitness_feature is not None:
-                performance, feature = self.fitness_feature(self.model)
-            else:
-                feature = self.feature_descriptor(x)
-                performance = self.fitness(self.model, game_level)
-            if feature not in self.performances or self.performances[feature] < performance:
-                logging.info('Found better performance for feature: {}, new score: {}'.format(feature, performance))
-                self.performances[feature] = performance
-                self.solutions[feature] = x
+            for j in range(num_threads):
+                t = threading.Thread(name = str(i)+"-"+ str(j), target = self.me_iteration, args = [is_crossover])
+                t.start()
+                threads.append(t)
+            
+            for t in threads:
+                t.join()
             if self.num_iter > self.log_counts * 5 and i % int(self.num_iter / self.log_counts) == 0:
                 logging.info('LOGGING INTERMEDIATE RESULTS {}'.format(str(self.performances)))
+
         return self.performances, self.solutions
