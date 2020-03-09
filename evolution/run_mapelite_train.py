@@ -36,7 +36,7 @@ SCORE_LOSING = 'score_losing'
 def get_initial_policy_net(level='gvgai-zelda-lvl0-v0', LINEAR_INPUT_SCALAR=8,
                            KERNEL=5, env_maker=None):
     if env_maker:
-        env = env_maker.make(level)
+        env = env_maker(level)
     else:
         import gym_gvgai
         env = gym.make(level)
@@ -63,7 +63,7 @@ def combine_scores(scores, score, win, mode):
     return scores
 
 
-def fitness_feature_fn(score_strategy, stop_after, game, run_name, env_maker, policy_net):
+def fitness_feature_fn(score_strategy, stop_after, game, run_name, policy_net, env_maker):
     """
     Calculate fitess and feature descriptor simultaneously
     """
@@ -96,12 +96,14 @@ def validate_args(score_strategy,):
 @click.option('--stop_after', default=None, help='Number of iterations after which to stop evaluating the agent')
 @click.option('--save_model', default=False, help='Whether to save the final model')
 @click.option('--gvgai-version', default=GVGAI_RUBEN, help='Which version of the gvgai library to run')
-def run(num_iter, score_strategy, game, stop_after, save_model, gvgai_version):
+@click.option('--thread_pool_size', default=1, help='Number of multithreading threads to run for evaluating agents')
+@click.option('--log_level', default='INFO', help='Logging level. DEBUG for all log statements')
+def run(num_iter, score_strategy, game, stop_after, save_model, gvgai_version, thread_pool_size, log_level):
     validate_args(score_strategy)
 
     run_name = f'{game}-iter-{num_iter}-strat-{score_strategy}-stop-after-{stop_after}'
 
-    logging.basicConfig(filename=run_name + '.log', level=logging.INFO)
+    logging.basicConfig(filename=run_name + '.log', level=logging.INFO if log_level == 'INFO' else logging.DEBUG)
     logging.getLogger().addHandler(logging.StreamHandler())
 
     logging.info('Beginning initial map elites run')
@@ -111,7 +113,7 @@ def run(num_iter, score_strategy, game, stop_after, save_model, gvgai_version):
 
     EnvMaker = CachingEnvironmentMaker(version=gvgai_version)
 
-    bound_fitness_feature = partial(fitness_feature_fn, score_strategy, stop_after, game, run_name, EnvMaker)
+    bound_fitness_feature = partial(fitness_feature_fn, score_strategy, stop_after, game, run_name)
     init_level = f'{game}-lvl0-v0'
     policy_net, init_model = get_initial_policy_net(level=init_level, env_maker=EnvMaker)
 
@@ -125,8 +127,9 @@ def run(num_iter, score_strategy, game, stop_after, save_model, gvgai_version):
                       num_iter,
                       mutate_possibility,
                       crossover_possibility,
-                      fitness_feature=bound_fitness_feature)
-    performances, solutions = map_e.run()
+                      fitness_feature=bound_fitness_feature,
+                      gvgai_version=gvgai_version)
+    performances, solutions = map_e.run(thread_pool_size)
     logging.info('Finished performances')
     logging.info('Final performances:')
     logging.info(str(performances))

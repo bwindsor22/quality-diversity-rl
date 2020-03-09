@@ -51,7 +51,7 @@ def evaluate_net(policy_net,
     logging.debug('making level %s', game_level)
 
     if env_maker:
-        env = env_maker.make(game_level)
+        env = env_maker(game_level)
     else:
         import gym_gvgai
         env = gym.make(game_level)
@@ -86,7 +86,7 @@ def evaluate_net(policy_net,
 
         sum_score += reward
         if t % 200 == 0:
-            logging.info('Time: {}, Reward: {}, Total Score: {}'.format(t, reward,  sum_score))
+            logging.debug('Time: {}, Reward: {}, Total Score: {}'.format(t, reward,  sum_score))
 
 
         # Move to the next state
@@ -94,18 +94,18 @@ def evaluate_net(policy_net,
         if done or (stop_after and t >= int(stop_after)):
             if info['winner'] == "PLAYER_WINS":
                 won = 1
-                logging.info('WIN')
-                logging.info("Score: {}, won: {}".format(sum_score.item(), won))
+                logging.debug('WIN')
+                logging.debug("Score: {}, won: {}".format(sum_score.item(), won))
             elif info['winner'] == "PLAYER_LOSES":
                 won = 0
-                logging.info('LOSE')
-                logging.info("Score: {}, won: {}".format(sum_score.item(), won))
+                logging.debug('LOSE')
+                logging.debug("Score: {}, won: {}".format(sum_score.item(), won))
             else:
                 won = 0
-                logging.info('Eval net stopped at {} steps'.format(t))
+                logging.debug('Eval net stopped at {} steps'.format(t))
             break
 
-    logging.info('Completed one level eval')
+    logging.debug('Completed one level eval')
 
     env.close()
     return sum_score, won
