@@ -72,7 +72,7 @@ class MapElites(object):
             child[l_1] = random.choice([s_1, s_2])
         return child
 
-    def me_iteration(self, is_crossover, env_maker):
+    def me_iteration(self, is_crossover, env_maker, counter):
         env_maker.acquire()
 
         if len(self.solutions) < self.num_initial_solutions:
@@ -92,6 +92,7 @@ class MapElites(object):
             self.performances[feature] = performance
             self.solutions[feature] = x 
 
+        counter.increment()
         env_maker.release()
     
     def run(self, thread_pool_size, is_crossover=False):
@@ -101,14 +102,13 @@ class MapElites(object):
         env_makers = [LockableResource(CachingEnvironmentMaker(version=self.gvgai_version))
                       for _ in range(thread_pool_size)]
 
-        sleep_time = 4
+        C =  Counter()
         while evaluations_run < self.num_iter:
-            if evaluations_run > thread_pool_size:
-                sleep_time = 0.5
-            time.sleep(sleep_time)
+            evaluations_run = C.get_value()
+            time.sleep(7)
 
             # log results partway through run
-            if self.num_iter > self.log_counts * 5 and evaluations_run % int(self.num_iter / self.log_counts) == 0:
+            if self.num_iter > self.log_counts * 5 and evaluations_run % int(self.num_iter / self.log_counts) == 0 and self.num_iter is not 0:
                 logging.info('LOGGING INTERMEDIATE RESULTS {}'.format(str(self.performances)))
 
 
@@ -117,15 +117,34 @@ class MapElites(object):
             if num_active < thread_pool_size:
                 if evaluations_run < 100 or evaluations_run % 100 == 0:
                     logging.info('%d threads active, %d threadpool size. Starting new thread.', num_active, thread_pool_size)
-                    logging.info('Beginning map elites iter: {}'.format(evaluations_run))
+                    logging.info('Map elites iterations finished: {}'.format(evaluations_run))
 
-                evaluations_run += 1
                 unlocked_makers = [l for l in env_makers if not l.is_locked()]
                 if len(unlocked_makers):
                     env_maker = unlocked_makers[0]
                     t = threading.Thread(name = 'run-{}'.format(evaluations_run),
                                          target = self.me_iteration,
-                                         args = [is_crossover, env_maker])
+                                         args = [is_crossover, env_maker, C])
                     t.start()
+            else:
+                logging.info('Map elites iterations finished: {}'.format(evaluations_run))
 
         return self.performances, self.solutions
+
+
+class Counter(object):
+    def __init__(self, start=0):
+        self.lock = threading.Lock()
+        self.value = start
+
+    def increment(self):
+        logging.debug('Waiting for lock')
+        self.lock.acquire()
+        try:
+            logging.debug('Acquired lock')
+            self.value = self.value + 1
+        finally:
+            self.lock.release()
+
+    def get_value(self):
+        return self.value
