@@ -102,13 +102,10 @@ class MapElites(object):
         env_makers = [LockableResource(CachingEnvironmentMaker(version=self.gvgai_version))
                       for _ in range(thread_pool_size)]
 
-        sleep_time = 4
         C =  Counter()
         while evaluations_run < self.num_iter:
             evaluations_run = C.get_value()
-            if evaluations_run > thread_pool_size:
-                sleep_time = 1
-            time.sleep(sleep_time)
+            time.sleep(6)
 
             # log results partway through run
             if self.num_iter > self.log_counts * 5 and evaluations_run % int(self.num_iter / self.log_counts) == 0 and self.num_iter is not 0:
@@ -129,6 +126,8 @@ class MapElites(object):
                                          target = self.me_iteration,
                                          args = [is_crossover, env_maker, C])
                     t.start()
+            else:
+                logging.info('Map elites iterations finished: {}'.format(evaluations_run))
 
         return self.performances, self.solutions
 
