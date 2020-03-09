@@ -7,6 +7,7 @@ import threading
 
 from environment_utils.utils import get_run_file_name
 from models.caching_environment_maker import CachingEnvironmentMaker
+from models.environment_maker import EnvironmentMaker
 from models.lockable_resource import LockableResource
 
 
@@ -73,7 +74,6 @@ class MapElites(object):
         return child
 
     def me_iteration(self, is_crossover, env_maker, counter):
-        env_maker.acquire()
 
         if len(self.solutions) < self.num_initial_solutions:
             self.model.__init__(*self.init_model)
@@ -93,22 +93,19 @@ class MapElites(object):
             self.solutions[feature] = x 
 
         counter.increment()
-        env_maker.release()
-    
+
     def run(self, thread_pool_size, is_crossover=False):
-        evaluations_run = 0
         main_thread = threading.currentThread()
 
-        env_makers = [LockableResource(CachingEnvironmentMaker(version=self.gvgai_version))
-                      for _ in range(thread_pool_size)]
 
         C =  Counter()
+        evaluations_run = C.get_value()
         while evaluations_run < self.num_iter:
             evaluations_run = C.get_value()
             time.sleep(7)
 
             # log results partway through run
-            if self.num_iter > self.log_counts * 5 and evaluations_run % int(self.num_iter / self.log_counts) == 0 and self.num_iter is not 0:
+            if self.num_iter > self.log_counts * 5 and evaluations_run % int(self.num_iter / self.log_counts) == 0 and evaluations_run > 0:
                 logging.info('LOGGING INTERMEDIATE RESULTS {}'.format(str(self.performances)))
 
 
@@ -119,13 +116,10 @@ class MapElites(object):
                     logging.info('%d threads active, %d threadpool size. Starting new thread.', num_active, thread_pool_size)
                     logging.info('Map elites iterations finished: {}'.format(evaluations_run))
 
-                unlocked_makers = [l for l in env_makers if not l.is_locked()]
-                if len(unlocked_makers):
-                    env_maker = unlocked_makers[0]
-                    t = threading.Thread(name = 'run-{}'.format(evaluations_run),
-                                         target = self.me_iteration,
-                                         args = [is_crossover, env_maker, C])
-                    t.start()
+                t = threading.Thread(name = 'run-{}'.format(evaluations_run),
+                                     target = self.me_iteration,
+                                     args = [is_crossover, EnvironmentMaker(version=self.gvgai_version), C])
+                t.start()
             else:
                 logging.info('Map elites iterations finished: {}'.format(evaluations_run))
 
