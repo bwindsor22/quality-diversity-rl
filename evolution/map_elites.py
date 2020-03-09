@@ -105,7 +105,7 @@ class MapElites(object):
         C =  Counter()
         while evaluations_run < self.num_iter:
             evaluations_run = C.get_value()
-            time.sleep(6)
+            time.sleep(7)
 
             # log results partway through run
             if self.num_iter > self.log_counts * 5 and evaluations_run % int(self.num_iter / self.log_counts) == 0 and self.num_iter is not 0:
