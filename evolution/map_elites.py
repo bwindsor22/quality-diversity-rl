@@ -115,8 +115,9 @@ class MapElites(object):
             active_threads = [t for t in threading.enumerate() if not t is main_thread]
             num_active = len(active_threads)
             if num_active < thread_pool_size:
-                logging.info('%d threads active, %d threadpool size. Starting new thread.', num_active, thread_pool_size)
-                logging.info('Beginning map elites iter: {}'.format(evaluations_run))
+                if evaluations_run < 100 or evaluations_run % 100 == 0:
+                    logging.info('%d threads active, %d threadpool size. Starting new thread.', num_active, thread_pool_size)
+                    logging.info('Beginning map elites iter: {}'.format(evaluations_run))
 
                 evaluations_run += 1
                 unlocked_makers = [l for l in env_makers if not l.is_locked()]

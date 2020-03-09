@@ -29,7 +29,7 @@ class CachingEnvironmentMaker:
         else:
             env = self.try_to_make(level)
             self.cache[level] = env
-        logging.info('returning level %s', level)
+        logging.debug('returning level %s', level)
         return self.cache[level]
 
     def ensure_working_env(self, level):
