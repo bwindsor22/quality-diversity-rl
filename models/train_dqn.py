@@ -4,7 +4,6 @@ from itertools import count
 from datetime import datetime
 
 import gym
-import gym_gvgai
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
@@ -49,9 +48,14 @@ def evaluate_net(policy_net,
                  stop_after=None,
                  ):
 
-    logging.info('making level %s', game_level)
+    logging.debug('making level %s', game_level)
 
-    env = env_maker.make(game_level) if env_maker else gym.make(game_level)
+    if env_maker:
+        env = env_maker(game_level)
+    else:
+        import gym_gvgai
+        env = gym.make(game_level)
+        env.reset()
 
     global steps_done
     steps_done = 0
@@ -61,7 +65,6 @@ def evaluate_net(policy_net,
 
     n_actions = env.action_space.n
 
-    env.reset()
     last_screen = get_screen(env, device)
     current_screen = get_screen(env, device)
     state = current_screen - last_screen
@@ -73,7 +76,6 @@ def evaluate_net(policy_net,
         _, reward, done, info = env.step(action.item())
         reward = torch.tensor([reward], device=device)
 
-
         # Observe new state
         last_screen = current_screen
         current_screen = get_screen(env, device)
@@ -84,7 +86,7 @@ def evaluate_net(policy_net,
 
         sum_score += reward
         if t % 200 == 0:
-            logging.info('Time: {}, Reward: {}, Total Score: {}'.format(t, reward,  sum_score))
+            logging.debug('Time: {}, Reward: {}, Total Score: {}'.format(t, reward,  sum_score))
 
 
         # Move to the next state
@@ -92,24 +94,28 @@ def evaluate_net(policy_net,
         if done or (stop_after and t >= int(stop_after)):
             if info['winner'] == "PLAYER_WINS":
                 won = 1
-                logging.info('WIN')
-                logging.info("Score: {}, won: {}".format(sum_score.item(), won))
+                logging.debug('WIN')
+                logging.debug("Score: {}, won: {}".format(sum_score.item(), won))
             elif info['winner'] == "PLAYER_LOSES":
                 won = 0
-                logging.info('LOSE')
-                logging.info("Score: {}, won: {}".format(sum_score.item(), won))
+                logging.debug('LOSE')
+                logging.debug("Score: {}, won: {}".format(sum_score.item(), won))
             else:
                 won = 0
-                logging.info('Breaking net eval early at {} steps'.format(t))
+                logging.debug('Eval net stopped at {} steps'.format(t))
             break
 
-    logging.info('Completed one level eval')
+    logging.debug('Completed one level eval')
 
     env.close()
     return sum_score, won
 
 
 if __name__ == '__main__':
+    """
+    Test function for running
+    """
+    import gym_gvgai
     logging.info('running main')
     def get_initial_policy_net(LINEAR_INPUT_SCALAR=8,
                                KERNEL=5):

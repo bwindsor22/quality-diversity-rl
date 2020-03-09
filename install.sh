@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 echo "creating environment"
 python -m venv qd-env
 source qd-env/bin/activate
