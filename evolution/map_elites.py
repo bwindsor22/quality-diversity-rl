@@ -101,8 +101,11 @@ class MapElites(object):
         env_makers = [LockableResource(CachingEnvironmentMaker(version=self.gvgai_version))
                       for _ in range(thread_pool_size)]
 
+        sleep_time = 4
         while evaluations_run < self.num_iter:
-            time.sleep(3)
+            if evaluations_run > thread_pool_size:
+                sleep_time = 0.5
+            time.sleep(sleep_time)
 
             # log results partway through run
             if self.num_iter > self.log_counts * 5 and evaluations_run % int(self.num_iter / self.log_counts) == 0:
@@ -112,7 +115,7 @@ class MapElites(object):
             active_threads = [t for t in threading.enumerate() if not t is main_thread]
             num_active = len(active_threads)
             if num_active < thread_pool_size:
-                logging.debug('%d threads active, %d threadpool size. Starting new thread.', num_active, thread_pool_size)
+                logging.info('%d threads active, %d threadpool size. Starting new thread.', num_active, thread_pool_size)
                 logging.info('Beginning map elites iter: {}'.format(evaluations_run))
 
                 evaluations_run += 1
