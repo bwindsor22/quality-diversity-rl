@@ -73,7 +73,7 @@ def evaluate_net(policy_net,
 
     for t in count():
         action = select_action(state, policy_net, n_actions)
-        _, reward, done, info = env.step(action.item())
+        obs, reward, done, info = env.step(action.item())
         reward = torch.tensor([reward], device=device)
 
         # Observe new state
@@ -102,6 +102,11 @@ def evaluate_net(policy_net,
                 logging.debug("Score: {}, won: {}".format(sum_score.item(), won))
             else:
                 won = 0
+                logging.debug('obs %s, done %s, info %s', str(obs), str(done), str(info))
+                if info['winner'] != 2 or set(info.keys()) != {'winner', 'actions'}:
+                    logger.info('IMPORTANT \n' * 50)
+                    logger.info('new info')
+                    logger.info(info)
                 logging.debug('Eval net stopped at {} steps'.format(t))
             break
 

@@ -73,8 +73,9 @@ class MapElites(object):
         return child
 
     def me_iteration(self, is_crossover, env_maker, counter):
+        logging.info('acquiring maker')
         env_maker.acquire()
-
+        logging.debug('starting new ME iteration')
         if len(self.solutions) < self.num_initial_solutions:
             self.model.__init__(*self.init_model)
             x = self.model.state_dict()
@@ -93,6 +94,7 @@ class MapElites(object):
             self.solutions[feature] = x 
 
         counter.increment()
+        logging.info('releasing maker')
         env_maker.release()
     
     def run(self, thread_pool_size, is_crossover=False):
@@ -103,9 +105,20 @@ class MapElites(object):
                       for _ in range(thread_pool_size)]
 
         C =  Counter()
+        sleep_time = 7
         while evaluations_run < self.num_iter:
             evaluations_run = C.get_value()
-            time.sleep(7)
+
+            #startup ramp
+            if evaluations_run == thread_pool_size + 5:
+                logging.info('reducing sleep time' * 10)
+                sleep_time = 2
+            elif evaluations_run == thread_pool_size + 20:
+                logging.info('reducing sleep time again' * 10)
+                sleep_time = 0.5
+
+            logging.debug('sleeping %d', sleep_time)
+            time.sleep(sleep_time)
 
             # log results partway through run
             if self.num_iter > self.log_counts * 5 and evaluations_run % int(self.num_iter / self.log_counts) == 0 and self.num_iter is not 0:
@@ -114,19 +127,24 @@ class MapElites(object):
 
             active_threads = [t for t in threading.enumerate() if not t is main_thread]
             num_active = len(active_threads)
-            if num_active < thread_pool_size:
+            if num_active < thread_pool_size * 7:
                 if evaluations_run < 100 or evaluations_run % 100 == 0:
                     logging.info('%d threads active, %d threadpool size. Starting new thread.', num_active, thread_pool_size)
                     logging.info('Map elites iterations finished: {}'.format(evaluations_run))
 
                 unlocked_makers = [l for l in env_makers if not l.is_locked()]
+                logging.info('%d unlocked makers', len(unlocked_makers))
                 if len(unlocked_makers):
                     env_maker = unlocked_makers[0]
                     t = threading.Thread(name = 'run-{}'.format(evaluations_run),
                                          target = self.me_iteration,
                                          args = [is_crossover, env_maker, C])
                     t.start()
+                    logging.debug('started new thread')
+                else:
+                    logging.debug('No unlocked makers')
             else:
+                logging.info('%d active threads, %d thread pool size', num_active, thread_pool_size)
                 logging.info('Map elites iterations finished: {}'.format(evaluations_run))
 
         return self.performances, self.solutions
