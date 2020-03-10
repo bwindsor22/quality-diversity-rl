@@ -73,7 +73,7 @@ class MapElites(object):
         return child
 
     def me_iteration(self, is_crossover, env_maker, counter):
-        logging.info('acquiring maker')
+        logging.debug('acquiring maker')
         env_maker.acquire()
         logging.debug('starting new ME iteration')
         if len(self.solutions) < self.num_initial_solutions:
@@ -94,7 +94,7 @@ class MapElites(object):
             self.solutions[feature] = x 
 
         counter.increment()
-        logging.info('releasing maker')
+        logging.debug('releasing maker')
         env_maker.release()
     
     def run(self, thread_pool_size, is_crossover=False):
@@ -110,11 +110,11 @@ class MapElites(object):
             evaluations_run = C.get_value()
 
             #startup ramp
-            if evaluations_run == thread_pool_size + 5:
-                logging.info('reducing sleep time' * 10)
+            if evaluations_run >= thread_pool_size - 5 and evaluations_run <= thread_pool_size + 5:
+                logging.info('reducing sleep time')
                 sleep_time = 2
-            elif evaluations_run == thread_pool_size + 20:
-                logging.info('reducing sleep time again' * 10)
+            elif evaluations_run >= thread_pool_size + 20 and evaluations_run <= thread_pool_size + 30:
+                logging.info('reducing sleep time again')
                 sleep_time = 0.5
 
             logging.debug('sleeping %d', sleep_time)
