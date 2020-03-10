@@ -36,7 +36,7 @@ class MapElites(object):
         self.feature_descriptor = feature_descriptor
         self.fitness_feature = fitness_feature
         self.gvgai_version = gvgai_version
-        self.log_counts = 10 # number of times to log intermediate results
+        self.log_counts = 100 # number of times to log intermediate results
 
     def random_variation(self, is_crossover):
         logging.debug('doing random varation')
@@ -106,34 +106,45 @@ class MapElites(object):
 
         C =  Counter()
         sleep_time = 7
+        begin_ramping = 20
+        times_to_log = [int(i) for i in np.linspace(0, self.num_iter, self.log_counts).tolist()]
         while evaluations_run < self.num_iter:
             evaluations_run = C.get_value()
 
             #startup ramp
-            if evaluations_run >= thread_pool_size - 5 and evaluations_run <= thread_pool_size + 5:
+            if abs(evaluations_run - begin_ramping) < 5:
                 logging.info('reducing sleep time')
-                sleep_time = 2
-            elif evaluations_run >= thread_pool_size + 20 and evaluations_run <= thread_pool_size + 30:
+                sleep_time = 4
+            elif abs(evaluations_run - begin_ramping - 10) < 5:
                 logging.info('reducing sleep time again')
-                sleep_time = 0.5
+                sleep_time = 3
+            elif abs(evaluations_run - begin_ramping - 20) < 5:
+                logging.info('reducing sleep time again again')
+                sleep_time = 2
+
 
             logging.debug('sleeping %d', sleep_time)
             time.sleep(sleep_time)
 
             # log results partway through run
-            if self.num_iter > self.log_counts * 5 and evaluations_run % int(self.num_iter / self.log_counts) == 0 and self.num_iter is not 0:
-                logging.info('LOGGING INTERMEDIATE RESULTS {}'.format(str(self.performances)))
+            if self.num_iter > self.log_counts * 5 and len(times_to_log) > 0 and evaluations_run > times_to_log[0]:
+                times_to_log.pop(0)
+                logging.info('LOGGING INTERMEDIATE RESULTS {}, {}'.format(evaluations_run, str(self.performances)))
+                logger = logging.getLogger()
+                logger.handlers[0].flush()
+                logger.handlers[1].flush()
 
 
             active_threads = [t for t in threading.enumerate() if not t is main_thread]
             num_active = len(active_threads)
             if num_active < thread_pool_size * 7:
-                if evaluations_run < 100 or evaluations_run % 100 == 0:
+                if evaluations_run < 50 or evaluations_run % 100 == 0:
                     logging.info('%d threads active, %d threadpool size. Starting new thread.', num_active, thread_pool_size)
                     logging.info('Map elites iterations finished: {}'.format(evaluations_run))
 
                 unlocked_makers = [l for l in env_makers if not l.is_locked()]
-                logging.info('%d unlocked makers', len(unlocked_makers))
+                if evaluations_run < 10 or evaluations_run % 5 == 0:
+                    logging.info('%d unlocked makers', len(unlocked_makers))
                 if len(unlocked_makers):
                     env_maker = unlocked_makers[0]
                     t = threading.Thread(name = 'run-{}'.format(evaluations_run),
@@ -144,8 +155,9 @@ class MapElites(object):
                 else:
                     logging.debug('No unlocked makers')
             else:
-                logging.info('%d active threads, %d thread pool size', num_active, thread_pool_size)
-                logging.info('Map elites iterations finished: {}'.format(evaluations_run))
+                if evaluations_run < 10 or evaluations_run % 5 == 0:
+                    logging.info('%d active threads, %d thread pool size', num_active, thread_pool_size)
+                    logging.info('Map elites iterations finished: {}'.format(evaluations_run))
 
         return self.performances, self.solutions
 
