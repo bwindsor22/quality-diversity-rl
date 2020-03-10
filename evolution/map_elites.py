@@ -120,7 +120,7 @@ class MapElites(object):
                 sleep_time = 3
             elif abs(evaluations_run - begin_ramping - 20) < 5:
                 logging.info('reducing sleep time again again')
-                sleep_time = 2
+                sleep_time = 1.5
 
 
             logging.debug('sleeping %d', sleep_time)
