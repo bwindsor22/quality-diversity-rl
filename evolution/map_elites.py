@@ -109,10 +109,8 @@ class MapElites(object):
         begin_ramping = 20
         times_to_log = [int(i) for i in np.linspace(0, self.num_iter, self.log_counts).tolist()]
         i = 0
+        unlocked_makers = []
         while evaluations_run < self.num_iter:
-            i += 1
-            if i % 1000 == 0:
-                logging.info('iter %d', i)
 
             evaluations_run = C.get_value()
 
@@ -131,15 +129,11 @@ class MapElites(object):
             logging.debug('sleeping %d', sleep_time)
             time.sleep(sleep_time)
 
-            # log results partway through run
-            if len(times_to_log) > 0 and evaluations_run > times_to_log[0]:
-                times_to_log.pop(0)
-                logging.info('LOGGING INTERMEDIATE RESULTS {}, {}'.format(evaluations_run, str(self.performances)))
 
 
             active_threads = [t for t in threading.enumerate() if not t is main_thread]
             num_active = len(active_threads)
-            if num_active < thread_pool_size * 7:
+            if True: # num_active < thread_pool_size * 8:
                 if evaluations_run < 100:
                     logging.info('%d threads active, %d threadpool size. Starting new thread.', num_active, thread_pool_size)
                     logging.info('Map elites iterations finished: {}'.format(evaluations_run))
@@ -160,6 +154,17 @@ class MapElites(object):
                 if evaluations_run < 100:
                     logging.info('%d active threads, %d thread pool size', num_active, thread_pool_size)
                     logging.info('Map elites iterations finished: {}'.format(evaluations_run))
+
+            # log results partway through run
+            if len(times_to_log) > 0 and evaluations_run > times_to_log[0]:
+                times_to_log.pop(0)
+                logging.info('LOGGING INTERMEDIATE RESULTS log-time iters: {}, evals: {}, active: {}, unlocked: {}, performs: {}'
+                             .format(i, evaluations_run, num_active, len(unlocked_makers), str(self.performances)))
+            if i % 1000 == 0:
+                logging.info('LOGGING INTERMEDIATE RESULTS iter-time iters: {}, evals: {}, active: {}, unlocked: {}, performs: {}'
+                             .format(i, evaluations_run, num_active, len(unlocked_makers), str(self.performances)))
+
+            i += 1
 
         return self.performances, self.solutions
 
