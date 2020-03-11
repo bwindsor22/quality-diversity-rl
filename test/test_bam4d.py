@@ -5,7 +5,7 @@ from unittest import TestCase
 
 class Ban4dTest(TestCase):
     """
-    python -m unittest test/test_ban4d.py
+    python -m unittest test/test_bam4d.py
     """
     def test_ban4d(self):
         env = gym.make('gvgai-aliens-lvl0-v0')
