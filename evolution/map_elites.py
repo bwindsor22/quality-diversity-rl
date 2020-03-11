@@ -89,7 +89,7 @@ class MapElites(object):
             feature = self.feature_descriptor(x)
             performance = self.fitness(self.model)
         if feature not in self.performances or self.performances[feature] < performance:
-            logging.info('Found better performance for feature: {}, new score: {}'.format(feature, performance))
+            logging.debug('Found better performance for feature: {}, new score: {}'.format(feature, performance))
             self.performances[feature] = performance
             self.solutions[feature] = x 
 
