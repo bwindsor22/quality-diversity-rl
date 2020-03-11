@@ -143,7 +143,7 @@ class MapElites(object):
                     logging.info('Map elites iterations finished: {}'.format(evaluations_run))
 
                 unlocked_makers = [l for l in env_makers if not l.is_locked()]
-                if evaluations_run < 10 or evaluations_run % 5 == 0:
+                if evaluations_run < 10 or evaluations_run % 10 == 0:
                     logging.info('%d unlocked makers', len(unlocked_makers))
                 if len(unlocked_makers):
                     env_maker = unlocked_makers[0]
@@ -155,7 +155,7 @@ class MapElites(object):
                 else:
                     logging.debug('No unlocked makers')
             else:
-                if evaluations_run < 10 or evaluations_run % 5 == 0:
+                if evaluations_run < 10 or evaluations_run % 10 == 0:
                     logging.info('%d active threads, %d thread pool size', num_active, thread_pool_size)
                     logging.info('Map elites iterations finished: {}'.format(evaluations_run))
 

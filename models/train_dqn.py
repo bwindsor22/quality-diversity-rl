@@ -92,21 +92,19 @@ def evaluate_net(policy_net,
         # Move to the next state
         state = next_state
         if done or (stop_after and t >= int(stop_after)):
-            if info['winner'] == "PLAYER_WINS":
+            if info['winner'] == "PLAYER_WINS" or info['winner'] == 3:
                 won = 1
                 logging.debug('WIN')
                 logging.debug("Score: {}, won: {}".format(sum_score.item(), won))
-            elif info['winner'] == "PLAYER_LOSES":
+            elif info['winner'] == "PLAYER_LOSES" or info['winner'] == 2:
                 won = 0
                 logging.debug('LOSE')
                 logging.debug("Score: {}, won: {}".format(sum_score.item(), won))
             else:
                 won = 0
                 logging.debug('obs %s, done %s, info %s', str(obs), str(done), str(info))
-                if info['winner'] != 2 or set(info.keys()) != {'winner', 'actions'}:
-                    logger.info('IMPORTANT \n' * 50)
-                    logger.info('new info')
-                    logger.info(info)
+                logger.info('new info')
+                logger.info(info)
                 logging.debug('Eval net stopped at {} steps'.format(t))
             break
 
