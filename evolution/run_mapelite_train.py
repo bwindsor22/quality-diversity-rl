@@ -95,7 +95,7 @@ def validate_args(score_strategy,):
 @click.option('--game', default='gvgai-zelda', help='Which game to run')
 @click.option('--stop_after', default=None, help='Number of iterations after which to stop evaluating the agent')
 @click.option('--save_model', default=False, help='Whether to save the final model')
-@click.option('--gvgai-version', default=GVGAI_RUBEN, help='Which version of the gvgai library to run')
+@click.option('--gvgai-version', default=GVGAI_BAM4D, help='Which version of the gvgai library to run')
 @click.option('--thread_pool_size', default=1, help='Number of multithreading threads to run for evaluating agents')
 @click.option('--log_level', default='INFO', help='Logging level. DEBUG for all log statements')
 def run(num_iter, score_strategy, game, stop_after, save_model, gvgai_version, thread_pool_size, log_level):
