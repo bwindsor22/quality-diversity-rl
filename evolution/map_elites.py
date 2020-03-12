@@ -17,6 +17,7 @@ class MapElites(object):
                  init_model,
                  init_iter, 
                  num_iter,
+                 is_crossover,
                  mutate_poss,
                  cross_poss,
                  max_age,
@@ -33,6 +34,7 @@ class MapElites(object):
         self.init_model = init_model
         self.num_initial_solutions = init_iter
         self.num_iter = num_iter
+        self.is_crossover = is_crossover
         self.mutate_poss = mutate_poss
         self.cross_poss = cross_poss
         self.fitness = fitness
@@ -41,9 +43,9 @@ class MapElites(object):
         self.gvgai_version = gvgai_version
         self.log_counts = 10 # number of times to log intermediate results
 
-    def random_variation(self, is_crossover):
+    def random_variation(self):
         logging.debug('doing random varation')
-        if is_crossover and len(self.solutions)>2:
+        if self.is_crossover and len(self.solutions)>2:
             ind = random.sample(list(self.solutions.items()), 2)
             ind = self.crossover(ind[0][1], ind[1][1])
         else:
@@ -85,7 +87,7 @@ class MapElites(object):
             else:
                 self.ages[key] += 1
     
-    def me_iteration(self, is_crossover, env_maker, counter):
+    def me_iteration(self, env_maker, counter):
         env_maker.acquire()
 
         if len(self.solutions) < self.num_initial_solutions:
@@ -93,7 +95,7 @@ class MapElites(object):
             x = self.model.state_dict()
         else:
             self.check_mortality()
-            x = self.random_variation(is_crossover)
+            x = self.random_variation(self.is_crossover)
         self.model.load_state_dict(x)
         if self.fitness_feature is not None:
             performance, feature = self.fitness_feature(self.model, env_maker) if env_maker  else\
@@ -109,7 +111,7 @@ class MapElites(object):
         counter.increment()
         env_maker.release()
     
-    def run(self, thread_pool_size, is_crossover=False):
+    def run(self, thread_pool_size):
         evaluations_run = 0
         main_thread = threading.currentThread()
 
@@ -138,7 +140,7 @@ class MapElites(object):
                     env_maker = unlocked_makers[0]
                     t = threading.Thread(name = 'run-{}'.format(evaluations_run),
                                          target = self.me_iteration,
-                                         args = [is_crossover, env_maker, C])
+                                         args = [self.is_crossover, env_maker, C])
                     t.start()
             else:
                 logging.info('Map elites iterations finished: {}'.format(evaluations_run))
