@@ -98,6 +98,10 @@ def validate_args(score_strategy,):
 @click.option('--gvgai-version', default=GVGAI_RUBEN, help='Which version of the gvgai library to run')
 @click.option('--thread_pool_size', default=1, help='Number of multithreading threads to run for evaluating agents')
 @click.option('--log_level', default='INFO', help='Logging level. DEBUG for all log statements')
+@click.option('--max_age',default = 750,help = 'Maximum number of iterations elite stored in map')
+@click.option('--is_crossover', default = False, help = 'Turn crossover on or off for generating new models')
+
+
 def run(num_iter, score_strategy, game, stop_after, save_model, gvgai_version, thread_pool_size, log_level):
     validate_args(score_strategy)
 
@@ -125,8 +129,10 @@ def run(num_iter, score_strategy, game, stop_after, save_model, gvgai_version, t
                       init_model,
                       init_iter,
                       num_iter,
+                      is_crossover,
                       mutate_possibility,
                       crossover_possibility,
+                      max_age,
                       fitness_feature=bound_fitness_feature,
                       gvgai_version=gvgai_version)
     performances, solutions = map_e.run(thread_pool_size)
