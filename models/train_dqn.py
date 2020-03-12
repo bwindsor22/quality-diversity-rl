@@ -103,8 +103,6 @@ def evaluate_net(policy_net,
             else:
                 won = 0
                 logging.debug('obs %s, done %s, info %s', str(obs), str(done), str(info))
-                logger.info('new info')
-                logger.info(info)
                 logging.debug('Eval net stopped at {} steps'.format(t))
             break
 
