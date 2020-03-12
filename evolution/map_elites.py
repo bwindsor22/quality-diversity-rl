@@ -19,6 +19,7 @@ class MapElites(object):
                  num_iter,
                  mutate_poss,
                  cross_poss,
+                 max_age,
                  fitness=None,
                  feature_descriptor=None,
                  fitness_feature=None,
@@ -26,6 +27,8 @@ class MapElites(object):
 
         self.solutions = {}
         self.performances = {}
+        self.ages = {}
+        self.max_age = max_age
         self.model = model
         self.init_model = init_model
         self.num_initial_solutions = init_iter
@@ -72,6 +75,16 @@ class MapElites(object):
             child[l_1] = random.choice([s_1, s_2])
         return child
 
+    
+    def check_mortality(self):
+        for key,value in list(self.ages.items()):
+            if value >= self.max_age:
+                del self.performances[key]
+                del self.solutions[key]
+                del self.ages[key]
+            else:
+                self.ages[key] += 1
+    
     def me_iteration(self, is_crossover, env_maker, counter):
         env_maker.acquire()
 
@@ -79,6 +92,7 @@ class MapElites(object):
             self.model.__init__(*self.init_model)
             x = self.model.state_dict()
         else:
+            self.check_mortality()
             x = self.random_variation(is_crossover)
         self.model.load_state_dict(x)
         if self.fitness_feature is not None:
