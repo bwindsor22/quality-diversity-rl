@@ -99,8 +99,8 @@ def validate_args(score_strategy,):
 @click.option('--thread_pool_size', default=1, help='Number of multithreading threads to run for evaluating agents')
 @click.option('--log_level', default='INFO', help='Logging level. DEBUG for all log statements')
 @click.option('--max_age',default = 750,help = 'Maximum number of iterations elite stored in map')
-@click.option('--is_mortality', default = False, help = 'Turn mortality on or off for elites')
-@click.option('--is_crossover', default = False, help = 'Turn crossover on or off for generating new models')
+@click.option('--is_mortality', is_flag=True, help = 'Turn mortality on or off for elites')
+@click.option('--is_crossover', is_flag=True, help = 'Turn crossover on or off for generating new models')
 @click.option('--crossover_possibility', default = 0.5, help = 'Turn crossover on or off for generating new models')
 @click.option('--mutate_possibility', default = 0.7, help = 'Turn mutate on or off for generating new models')
 
@@ -117,8 +117,6 @@ def run(num_iter, score_strategy, game, stop_after, save_model, gvgai_version, t
     logging.info('Beginning initial map elites run')
     logging.info('Run file %s', run_name)
     print('logging setup')
-
-    print(gvgai_version)
 
     EnvMaker = CachingEnvironmentMaker(version=gvgai_version)
 
