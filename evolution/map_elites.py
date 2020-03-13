@@ -20,6 +20,7 @@ class MapElites(object):
                  is_crossover,
                  mutate_poss,
                  cross_poss,
+                 is_mortality,
                  max_age,
                  fitness=None,
                  feature_descriptor=None,
@@ -94,7 +95,8 @@ class MapElites(object):
             self.model.__init__(*self.init_model)
             x = self.model.state_dict()
         else:
-            self.check_mortality()
+            if self.is_mortality == True:
+                self.check_mortality()
             x = self.random_variation(self.is_crossover)
         self.model.load_state_dict(x)
         if self.fitness_feature is not None:
@@ -107,6 +109,7 @@ class MapElites(object):
             logging.info('Found better performance for feature: {}, new score: {}'.format(feature, performance))
             self.performances[feature] = performance
             self.solutions[feature] = x 
+            self.ages[feature] = 0
 
         counter.increment()
         env_maker.release()

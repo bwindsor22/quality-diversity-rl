@@ -95,14 +95,18 @@ def validate_args(score_strategy,):
 @click.option('--game', default='gvgai-zelda', help='Which game to run')
 @click.option('--stop_after', default=None, help='Number of iterations after which to stop evaluating the agent')
 @click.option('--save_model', default=False, help='Whether to save the final model')
-@click.option('--gvgai-version', default=GVGAI_RUBEN, help='Which version of the gvgai library to run')
+@click.option('--gvgai_version', default=GVGAI_RUBEN, help='Which version of the gvgai library to run')
 @click.option('--thread_pool_size', default=1, help='Number of multithreading threads to run for evaluating agents')
 @click.option('--log_level', default='INFO', help='Logging level. DEBUG for all log statements')
 @click.option('--max_age',default = 750,help = 'Maximum number of iterations elite stored in map')
+@click.option('--is_mortality', default = False, help = 'Turn mortality on or off for elites')
 @click.option('--is_crossover', default = False, help = 'Turn crossover on or off for generating new models')
+@click.option('--crossover_possibility', default = 0.5, help = 'Turn crossover on or off for generating new models')
+@click.option('--mutate_possibility', default = 0.7, help = 'Turn mutate on or off for generating new models')
 
 
-def run(num_iter, score_strategy, game, stop_after, save_model, gvgai_version, thread_pool_size, log_level):
+
+def run(num_iter, score_strategy, game, stop_after, save_model, gvgai_version, thread_pool_size, log_level, max_age,is_mortality,is_crossover,mutate_possibility,crossover_possibility):
     validate_args(score_strategy)
 
     run_name = f'{game}-iter-{num_iter}-strat-{score_strategy}-stop-after-{stop_after}'
@@ -114,6 +118,7 @@ def run(num_iter, score_strategy, game, stop_after, save_model, gvgai_version, t
     logging.info('Run file %s', run_name)
     print('logging setup')
 
+    print(gvgai_version)
 
     EnvMaker = CachingEnvironmentMaker(version=gvgai_version)
 
@@ -123,8 +128,8 @@ def run(num_iter, score_strategy, game, stop_after, save_model, gvgai_version, t
 
 
     init_iter = 1
-    mutate_possibility = 0.7
-    crossover_possibility = 0.5
+    #mutate_possibility = 0.7
+    #crossover_possibility = 0.5
     map_e = MapElites(policy_net,
                       init_model,
                       init_iter,
@@ -132,6 +137,7 @@ def run(num_iter, score_strategy, game, stop_after, save_model, gvgai_version, t
                       is_crossover,
                       mutate_possibility,
                       crossover_possibility,
+                      is_mortality,
                       max_age,
                       fitness_feature=bound_fitness_feature,
                       gvgai_version=gvgai_version)
