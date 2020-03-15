@@ -93,7 +93,6 @@ def evaluate_net(policy_net,
 
     for t in count():
         
-        print(t)
         action = select_action(state, policy_net, n_actions)
         
         observation, reward, done, info = env.step(action.item())
