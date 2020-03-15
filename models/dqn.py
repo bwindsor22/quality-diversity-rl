@@ -8,7 +8,8 @@ class DQN(nn.Module):
         super(DQN, self).__init__()
 
         half_scalar = int(linear_input_scalar / 2)
-        self.conv1 = nn.Conv2d(3, half_scalar, kernel_size=kernel_size, stride=2)
+        #self.conv1 = nn.Conv2d(3, half_scalar, kernel_size=kernel_size, stride=2)
+        self.conv1 = nn.Conv2d(13, half_scalar, kernel_size=kernel_size, stride=2)
         self.conv2 = nn.Conv2d(half_scalar, linear_input_scalar, kernel_size=kernel_size, stride=2)
         self.conv3 = nn.Conv2d(linear_input_scalar, linear_input_scalar, kernel_size=kernel_size, stride=2)
 

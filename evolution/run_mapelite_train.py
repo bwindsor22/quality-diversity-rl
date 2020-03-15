@@ -33,21 +33,30 @@ SCORE_ALL = 'score_all'
 SCORE_WINNING = 'score_winning'
 SCORE_LOSING = 'score_losing'
 
-def get_initial_policy_net(level='gvgai-zelda-lvl0-v0', LINEAR_INPUT_SCALAR=8,
-                           KERNEL=5, env_maker=None):
+def get_initial_policy_net(level='gvgai-zelda-lvl0-v0', linear_input_scalar = 8,
+                           KERNEL=2, env_maker=None):
     if env_maker:
         env = env_maker(level)
+        is_Tilemap = env_maker.is_Tilemap
+        #print(is_Tilemap)
     else:
         import gym_gvgai
         env = gym.make(level)
+        is_Tilemap = False
 
     device = find_device()
-    init_screen = get_screen(env, device)
+    if is_Tilemap == False:
+        init_screen = get_screen(env, device)
+        _, _, screen_height, screen_width = init_screen.shape
+    else:
+        _,init_screen = env.reset()
+        #print(init_screen.shape)
+        screen_height, screen_width, _ = init_screen.shape
 
-    _, _, screen_height, screen_width = init_screen.shape
+
     n_actions = env.action_space.n
 
-    init_model = [screen_height, screen_width, LINEAR_INPUT_SCALAR, KERNEL, n_actions]
+    init_model = [screen_height, screen_width, linear_input_scalar, KERNEL, n_actions]
     policy_net = DQN(*init_model).to(device)
     return policy_net, init_model
 
@@ -103,10 +112,11 @@ def validate_args(score_strategy,):
 @click.option('--is_crossover', is_flag=True, help = 'Turn crossover on or off for generating new models')
 @click.option('--crossover_possibility', default = 0.5, help = 'Turn crossover on or off for generating new models')
 @click.option('--mutate_possibility', default = 0.7, help = 'Turn mutate on or off for generating new models')
+@click.option('--is_tilemap', is_flag=True, help = 'Turn tile map observation on')
+@click.option('--linear_input_scalar', default = 8, help = '# of input channels to first layer of CNN')
 
 
-
-def run(num_iter, score_strategy, game, stop_after, save_model, gvgai_version, thread_pool_size, log_level, max_age,is_mortality,is_crossover,mutate_possibility,crossover_possibility):
+def run(num_iter, score_strategy, game, stop_after, save_model, gvgai_version, thread_pool_size, log_level, max_age,is_mortality,is_crossover,mutate_possibility,crossover_possibility, is_tilemap, linear_input_scalar):
     validate_args(score_strategy)
 
     run_name = f'{game}-iter-{num_iter}-strat-{score_strategy}-stop-after-{stop_after}'
@@ -117,12 +127,11 @@ def run(num_iter, score_strategy, game, stop_after, save_model, gvgai_version, t
     logging.info('Beginning initial map elites run')
     logging.info('Run file %s', run_name)
     print('logging setup')
-
-    EnvMaker = CachingEnvironmentMaker(version=gvgai_version)
+    EnvMaker = CachingEnvironmentMaker(version=gvgai_version,is_Tilemap=is_tilemap)
 
     bound_fitness_feature = partial(fitness_feature_fn, score_strategy, stop_after, game, run_name)
     init_level = f'{game}-lvl0-v0'
-    policy_net, init_model = get_initial_policy_net(level=init_level, env_maker=EnvMaker)
+    policy_net, init_model = get_initial_policy_net(level=init_level, env_maker=EnvMaker, linear_input_scalar = linear_input_scalar)
 
 
     init_iter = 1
@@ -138,7 +147,8 @@ def run(num_iter, score_strategy, game, stop_after, save_model, gvgai_version, t
                       is_mortality,
                       max_age,
                       fitness_feature=bound_fitness_feature,
-                      gvgai_version=gvgai_version)
+                      gvgai_version=gvgai_version,
+                      is_Tilemap = is_tilemap)
     performances, solutions = map_e.run(thread_pool_size)
     logging.info('Finished performances')
     logging.info('Final performances:')

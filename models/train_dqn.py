@@ -45,40 +45,69 @@ def select_action(state, policy_net, n_actions,
 def evaluate_net(policy_net,
                  game_level,
                  env_maker=None,
-                 stop_after=None,
+                 stop_after=None
                  ):
 
     logging.debug('making level %s', game_level)
-
+    
     if env_maker:
-        env = env_maker(game_level)
+        env = env_maker.resource.make(game_level)
+        is_Tilemap = env_maker.resource.is_Tilemap
+        #print(is_Tilemap)
     else:
         import gym_gvgai
         env = gym.make(game_level)
         env.reset()
+        is_Tilemap = False
 
     global steps_done
     steps_done = 0
-
-    init_screen = get_screen(env, device)
-    _, _, screen_height, screen_width = init_screen.shape
+    #print("Env maker is_Tilemap: ", is_Tilemap)
+    if is_Tilemap == False:
+        init_screen = get_screen(env, device)
+        _, _, screen_height, screen_width = init_screen.shape
+    else:
+        _,init_screen = env.reset()
+        #print(init_screen)
+        screen_height, screen_width,depth = init_screen.shape
 
     n_actions = env.action_space.n
-
-    last_screen = get_screen(env, device)
-    current_screen = get_screen(env, device)
+    
+    if is_Tilemap == False:
+        last_screen = get_screen(env, device)
+        current_screen = get_screen(env, device)
+    else:
+        _,last_screen = env.reset()
+        #print("last_screen")
+        #print(last_screen.shape)
+        current_screen = np.copy(last_screen)
+    
     state = current_screen - last_screen
+    if is_Tilemap == True:
+        state = torch.from_numpy(state).float().to(device)
+        #print(state[0])
+        state = state.view(-1,depth,screen_width,screen_height)
+    #
     sum_score = 0
     won = 0
 
     for t in count():
+        
+        print(t)
         action = select_action(state, policy_net, n_actions)
-        _, reward, done, info = env.step(action.item())
+        
+        observation, reward, done, info = env.step(action.item())
         reward = torch.tensor([reward], device=device)
 
         # Observe new state
         last_screen = current_screen
-        current_screen = get_screen(env, device)
+        
+        if is_Tilemap == False:
+            current_screen = get_screen(env, device)
+        else:
+            current_screen = observation[1]
+        
+        
         if not done:
             next_state = current_screen - last_screen
         else:
@@ -90,7 +119,11 @@ def evaluate_net(policy_net,
 
 
         # Move to the next state
+        #print(observation[1].shape)
         state = next_state
+        if(done == False and is_Tilemap == True):
+            state = torch.from_numpy(state).float().to(device)
+            state = state.view(-1,depth,screen_width,screen_height)        
         if done or (stop_after and t >= int(stop_after)):
             if info['winner'] == "PLAYER_WINS":
                 won = 1

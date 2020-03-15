@@ -10,11 +10,15 @@ process = T.Compose([T.ToPILImage(),
                     T.ToTensor()])
 
 def get_screen(env, device):
+    
     screen = env.render(mode='rgb_array').transpose((2, 0, 1))
 
     screen = np.ascontiguousarray(screen, dtype=np.float32) / 255
-
-    # (this doesn't require a copy)
+        
     screen = torch.from_numpy(screen)
+        
+    # (this doesn't require a copy)
     # Resize, and add a batch dimension (BCHW)
     return process(screen).unsqueeze(0).to(device)
+
+

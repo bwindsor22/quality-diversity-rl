@@ -25,7 +25,9 @@ class MapElites(object):
                  fitness=None,
                  feature_descriptor=None,
                  fitness_feature=None,
-                 gvgai_version=None):
+                 gvgai_version=None,
+                 is_Tilemap = False
+                 ):
 
         self.solutions = {}
         self.performances = {}
@@ -43,6 +45,7 @@ class MapElites(object):
         self.feature_descriptor = feature_descriptor
         self.fitness_feature = fitness_feature
         self.gvgai_version = gvgai_version
+        self.is_Tilemap = is_Tilemap
         self.log_counts = 10 # number of times to log intermediate results
 
     def random_variation(self):
@@ -117,7 +120,7 @@ class MapElites(object):
             self.performances[feature] = performance
             self.solutions[feature] = x 
             self.ages[feature] = 0
-    
+        print("End of ME Iteration")
         counter.increment()
         env_maker.release()
     
@@ -125,7 +128,7 @@ class MapElites(object):
         evaluations_run = 0
         main_thread = threading.currentThread()
 
-        env_makers = [LockableResource(CachingEnvironmentMaker(version=self.gvgai_version))
+        env_makers = [LockableResource(CachingEnvironmentMaker(version=self.gvgai_version, is_Tilemap = self.is_Tilemap))
                       for _ in range(thread_pool_size)]
         C =  Counter()
         while evaluations_run < self.num_iter:
@@ -143,10 +146,11 @@ class MapElites(object):
                 if evaluations_run < 100 or evaluations_run % 100 == 0:
                     logging.info('%d threads active, %d threadpool size. Starting new thread.', num_active, thread_pool_size)
                     logging.info('Map elites iterations finished: {}'.format(evaluations_run))
+
                     
 
                 unlocked_makers = [l for l in env_makers if not l.is_locked()]
-                #print("len unlocked",len(unlocked_makers))
+                print("LEN UNLOCKED ",len(unlocked_makers))
                 if len(unlocked_makers):
                     env_maker = unlocked_makers[0]
                     t = threading.Thread(name = 'run-{}'.format(evaluations_run),
@@ -155,7 +159,7 @@ class MapElites(object):
                     t.start()
             else:
                 logging.info('Map elites iterations finished: {}'.format(evaluations_run))
-
+                print("LEN UNLOCKED ",len(unlocked_makers))
         return self.performances, self.solutions
 
 

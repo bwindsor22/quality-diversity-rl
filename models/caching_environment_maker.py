@@ -9,14 +9,14 @@ class CachingEnvironmentMaker:
     Speeds up repeat calls to env.make.
     Stores the old environment so python doesn't have to recreate and reconnect.
     """
-    def __init__(self, version=GVGAI_RUBEN, make_env_attempts=100):
+    def __init__(self, version=GVGAI_RUBEN, is_Tilemap = False,make_env_attempts=100):
         if version == GVGAI_RUBEN:
             #usually runs, slower
             import gym_gvgai
         elif version == GVGAI_BAN4D:
             # harder to get running, is faster
             import gvgai
-
+        self.is_Tilemap = is_Tilemap
         self.make_env_attempts = make_env_attempts
         self.cache = {}
 
@@ -48,7 +48,10 @@ class CachingEnvironmentMaker:
         for att in range(self.make_env_attempts):
             try:
             # if True:
-                env = gym.make(level)
+                if self.is_Tilemap == False:
+                    env = gym.make(level)
+                else:
+                    env = gym.make(level,tile_observations=True)
                 self.test_env(env)
                 return env
             except Exception as e:
