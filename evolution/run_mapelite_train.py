@@ -95,18 +95,15 @@ def validate_args(score_strategy,):
 @click.option('--game', default='gvgai-zelda', help='Which game to run')
 @click.option('--stop_after', default=None, help='Number of iterations after which to stop evaluating the agent')
 @click.option('--save_model', default=False, help='Whether to save the final model')
-@click.option('--gvgai-version', default=GVGAI_BAM4D, help='Which version of the gvgai library to run')
-@click.option('--thread_pool_size', default=1, help='Number of multithreading threads to run for evaluating agents')
+@click.option('--gvgai_version', default=GVGAI_BAM4D, help='Which version of the gvgai library to run, GVGAI_BAM4D or GVGAI_RUBEN')
+@click.option('--num_threads', default=1, help='Number of multithreading threads to run for evaluating agents')
 @click.option('--log_level', default='INFO', help='Logging level. DEBUG for all log statements')
 @click.option('--max_age',default = 750,help = 'Maximum number of iterations elite stored in map')
 @click.option('--is_mortality', is_flag=True, help = 'Turn mortality on or off for elites')
 @click.option('--is_crossover', is_flag=True, help = 'Turn crossover on or off for generating new models')
 @click.option('--crossover_possibility', default = 0.5, help = 'Turn crossover on or off for generating new models')
 @click.option('--mutate_possibility', default = 0.7, help = 'Turn mutate on or off for generating new models')
-
-
-
-def run(num_iter, score_strategy, game, stop_after, save_model, gvgai_version, thread_pool_size, log_level, max_age,is_mortality,is_crossover,mutate_possibility,crossover_possibility):
+def run(num_iter, score_strategy, game, stop_after, save_model, gvgai_version, num_threads, log_level, max_age,is_mortality,is_crossover,mutate_possibility,crossover_possibility):
     validate_args(score_strategy)
 
     run_name = f'{game}-iter-{num_iter}-strat-{score_strategy}-stop-after-{stop_after}'
@@ -139,7 +136,7 @@ def run(num_iter, score_strategy, game, stop_after, save_model, gvgai_version, t
                       max_age,
                       fitness_feature=bound_fitness_feature,
                       gvgai_version=gvgai_version)
-    performances, solutions = map_e.run(thread_pool_size)
+    performances, solutions = map_e.run(num_threads)
     logging.info('Finished performances')
     logging.info('Final performances:')
     logging.info(str(performances))

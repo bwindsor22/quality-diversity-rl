@@ -131,12 +131,12 @@ class MapElites(object):
                       for _ in range(thread_pool_size)]
 
         C =  Counter()
-        sleep_time = 20
+        sleep_time = 7
         end_sleep_time = 1.5
         ramp_steps = 10
         ramp_by = (sleep_time - end_sleep_time) / ramp_steps
         begin_ramping = 7
-        end_ramping = 150
+        end_ramping = 60
         
         #start at a slower speed, ramp up slowly. Calculate times to ramp.
         mid_ramp = begin_ramping + int((begin_ramping + end_ramping) / 2)
@@ -175,7 +175,7 @@ class MapElites(object):
                     env_maker = unlocked_makers[0]
                     t = threading.Thread(name = 'run-{}'.format(evaluations_run),
                                          target = self.me_iteration,
-                                         args = [is_crossover, env_maker, C])
+                                         args = [env_maker, C])
                     t.start()
                     logging.debug('started new thread')
                 else:
