@@ -4,7 +4,7 @@ python -m venv qd-bam4d-env
 source qd-bam4d-env/bin/activate
 
 echo "installing basic files"
-pip install flatbuffers
+pip install flatbuffers==1.11
 pip install -r requirements.txt
 
 echo "installing gym"

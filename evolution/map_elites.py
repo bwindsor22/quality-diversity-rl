@@ -17,8 +17,11 @@ class MapElites(object):
                  init_model,
                  init_iter, 
                  num_iter,
+                 is_crossover,
                  mutate_poss,
                  cross_poss,
+                 is_mortality,
+                 max_age,
                  fitness=None,
                  feature_descriptor=None,
                  fitness_feature=None,
@@ -26,10 +29,14 @@ class MapElites(object):
 
         self.solutions = {}
         self.performances = {}
+        self.ages = {}
+        self.max_age = max_age
         self.model = model
         self.init_model = init_model
         self.num_initial_solutions = init_iter
         self.num_iter = num_iter
+        self.is_crossover = is_crossover
+        self.is_mortality = is_mortality
         self.mutate_poss = mutate_poss
         self.cross_poss = cross_poss
         self.fitness = fitness
@@ -38,9 +45,9 @@ class MapElites(object):
         self.gvgai_version = gvgai_version
         self.log_counts = 1000 # number of times to log intermediate results
 
-    def random_variation(self, is_crossover):
+    def random_variation(self):
         logging.debug('doing random varation')
-        if is_crossover and len(self.solutions)>2:
+        if self.is_crossover and len(self.solutions)>2:
             ind = random.sample(list(self.solutions.items()), 2)
             ind = self.crossover(ind[0][1], ind[1][1])
         else:
@@ -72,15 +79,32 @@ class MapElites(object):
             child[l_1] = random.choice([s_1, s_2])
         return child
 
-    def me_iteration(self, is_crossover, env_maker, counter):
-        logging.debug('acquiring maker')
+    
+    def check_mortality(self):
+        #print("Checking age")
+        for key,value in list(self.ages.items()):
+            if value >= self.max_age:
+                #print("Agent Died")
+                del self.performances[key]
+                del self.solutions[key]
+                del self.ages[key]
+            else:
+                self.ages[key] += 1
+    
+    def me_iteration(self,env_maker, counter):
         env_maker.acquire()
-        logging.debug('starting new ME iteration')
+        if self.is_mortality == True:
+            #print("morta",self.is_mortality)
+            self.check_mortality()
         if len(self.solutions) < self.num_initial_solutions:
             self.model.__init__(*self.init_model)
             x = self.model.state_dict()
+            #print("CREATED")
         else:
-            x = self.random_variation(is_crossover)
+            #print("VARIATING")
+
+            x = self.random_variation()
+            
         self.model.load_state_dict(x)
         if self.fitness_feature is not None:
             performance, feature = self.fitness_feature(self.model, env_maker) if env_maker  else\
@@ -93,11 +117,13 @@ class MapElites(object):
             self.performances[feature] = performance
             self.solutions[feature] = x 
 
-        counter.increment()
         logging.debug('releasing maker')
+        self.ages[feature] = 0
+    
+        counter.increment()
         env_maker.release()
     
-    def run(self, thread_pool_size, is_crossover=False):
+    def run(self, thread_pool_size):
         evaluations_run = 0
         main_thread = threading.currentThread()
 
@@ -112,6 +138,7 @@ class MapElites(object):
         begin_ramping = 7
         end_ramping = 150
         
+        #start at a slower speed, ramp up slowly. Calculate times to ramp.
         mid_ramp = begin_ramping + int((begin_ramping + end_ramping) / 2)
         times_to_ramp = [int(i) for i in np.linspace(begin_ramping, mid_ramp, int(ramp_steps * 0.75) ).tolist()]
         ttr_2 = [int(i) for i in np.linspace(mid_ramp, end_ramping, int(ramp_steps * 0.25) + 1 ).tolist()]
