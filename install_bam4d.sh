@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+# DEBUG Tips:
+# did the install of gvgai fail? python -m unittest test_bam4d.py
+# if so, try conda install -c conda-forge/label/gcc7 openjdk 
+
 echo "creating environment"
 python -m venv qd-bam4d-env
 source qd-bam4d-env/bin/activate

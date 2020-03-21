@@ -2,7 +2,7 @@ import gym
 import logging
 
 GVGAI_RUBEN = 'GVGAI_RUBEN'
-GVGAI_BAN4D = 'GVGAI_BAN4D'
+GVGAI_BAM4D = 'GVGAI_BAM4D'
 
 class CachingEnvironmentMaker:
     """
@@ -13,7 +13,7 @@ class CachingEnvironmentMaker:
         if version == GVGAI_RUBEN:
             #usually runs, slower
             import gym_gvgai
-        elif version == GVGAI_BAN4D:
+        elif version == GVGAI_BAM4D:
             # harder to get running, is faster
             import gvgai
 
