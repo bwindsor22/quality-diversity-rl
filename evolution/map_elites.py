@@ -105,42 +105,45 @@ class MapElites(object):
                       for _ in range(thread_pool_size)]
 
         C =  Counter()
-        sleep_time = 7
-        begin_ramping = 20
+        sleep_time = 20
+        end_sleep_time = 1.5
+        ramp_steps = 10
+        ramp_by = (sleep_time - end_sleep_time) / ramp_steps
+        begin_ramping = 7
+        end_ramping = 150
+        
+        mid_ramp = begin_ramping + int((begin_ramping + end_ramping) / 2)
+        times_to_ramp = [int(i) for i in np.linspace(begin_ramping, mid_ramp, int(ramp_steps * 0.75) ).tolist()]
+        ttr_2 = [int(i) for i in np.linspace(mid_ramp, end_ramping, int(ramp_steps * 0.25) + 1 ).tolist()]
+        times_to_ramp.extend(ttr_2[1:])
+
+        logging.info('will speed up sleep time at eval runs %s', str(times_to_ramp))
         times_to_log = [int(i) for i in np.linspace(0, self.num_iter, self.log_counts).tolist()]
         i = 0
         unlocked_makers = []
         while evaluations_run < self.num_iter:
-
             evaluations_run = C.get_value()
 
-            #startup ramp
-            if abs(evaluations_run - begin_ramping) < 5:
-                logging.info('reducing sleep time')
-                sleep_time = 4
-            elif abs(evaluations_run - begin_ramping - 10) < 5:
-                logging.info('reducing sleep time again')
-                sleep_time = 3
-            elif abs(evaluations_run - begin_ramping - 20) < 5:
-                logging.info('reducing sleep time again again')
-                sleep_time = 1.5
+            if evaluations_run <= end_ramping + 50:
+                logging.info('starting new iter')
+                while times_to_ramp and evaluations_run >= times_to_ramp[0]:
+                    times_to_ramp.pop(0)
+                    sleep_time = max(end_sleep_time, sleep_time - ramp_by)
+                    logging.info('reducing sleep')
+                logging.info('sleeping %d', sleep_time)
 
-
-            logging.debug('sleeping %d', sleep_time)
             time.sleep(sleep_time)
-
-
 
             active_threads = [t for t in threading.enumerate() if not t is main_thread]
             num_active = len(active_threads)
             if True: # num_active < thread_pool_size * 8:
                 if evaluations_run < 100:
-                    logging.info('%d threads active, %d threadpool size. Starting new thread.', num_active, thread_pool_size)
+                    logging.info('%d threads active, %d threadpool size.', num_active, thread_pool_size)
                     logging.info('Map elites iterations finished: {}'.format(evaluations_run))
 
                 unlocked_makers = [l for l in env_makers if not l.is_locked()]
-                if evaluations_run < 10 or (evaluations_run % 10 == 0 and evaluations_run < 200):
-                    logging.info('%d unlocked makers', len(unlocked_makers))
+                if evaluations_run < 100 or (evaluations_run % 10 == 0 and evaluations_run < 200):
+                    logging.info('%d unlocked reusable level makers', len(unlocked_makers))
                 if len(unlocked_makers):
                     env_maker = unlocked_makers[0]
                     t = threading.Thread(name = 'run-{}'.format(evaluations_run),
