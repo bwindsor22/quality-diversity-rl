@@ -19,7 +19,7 @@ A typical install and run might look like:
     * If you've changed gradle or java, try reinstalling bam4d
 * Common errors
     * `module evolution not found`: make sure you set your python path, above
-    * `module DQN has no attribute conv1`: ignore, this sometimes happens when starting up several instances
+    * `module DQN has no attribute conv1`: ignore, this sometimes happens when starting up a lot of threas at once, but future threads will succeed
 
 ### Using lab hosts
 * check ganglia (ask on slack for details) to watch your CPU usage. Ideally, you want to see `system` and `user` usage as high, but that `wait` is zero. If you see `wait`, you're overloading the cpus
