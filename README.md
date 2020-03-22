@@ -17,6 +17,7 @@ A typical install and run might look like:
     * Check java: try `conda install -c conda-forge/label/gcc7 openjdk` to get java. Check `java --version` shows java. Ensure `which java` points to the same java as `echo $JAVA_HOME`. `$JAVA_HOME/bin/java` should be the same as `which java`
     * Check gradle: `cd GVGAI_GYM_BAM/GVGAI_GYM/` and run `./gradlew --status`
     * If you've changed gradle or java, try reinstalling bam4d
+    * Bam4d has only been tested on linux. If on Mac, run the Ruben library with install.sh
 * Common errors
     * `module evolution not found`: make sure you set your python path, above
     * `module DQN has no attribute conv1`: ignore, this sometimes happens when starting up a lot of threads at once, but future threads will succeed
