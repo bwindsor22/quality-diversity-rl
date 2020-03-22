@@ -8,6 +8,7 @@ A typical install and run might look like:
 * `git clone https://github.com/bwindsor22/quality-diversity-rl.git`
 * `cd quality-diversity-rl`
 * `bash install_bam4d.sh`
+* `source qd-bam4d-env/bin/activate`
 * ```export PYTHONPATH=`pwd`:$PYTHONPATH```
 * `python evolution/run_mapelite_train.py --num_threads 9 --num_iter 50000`
 
