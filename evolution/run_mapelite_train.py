@@ -102,7 +102,7 @@ def validate_args(score_strategy,):
 @click.option('--is_mortality', is_flag=True, help = 'Turn mortality on or off for elites')
 @click.option('--is_crossover', is_flag=True, help = 'Turn crossover on or off for generating new models')
 @click.option('--crossover_possibility', default = 0.5, help = 'Turn crossover on or off for generating new models')
-@click.option('--mutate_possibility', default = 0.7, help = 'Turn mutate on or off for generating new models')
+@click.option('--mutate_possibility', default = 0.95, help = 'Turn mutate on or off for generating new models')
 def run(num_iter, score_strategy, game, stop_after, save_model, gvgai_version, num_threads, log_level, max_age,is_mortality,is_crossover,mutate_possibility,crossover_possibility):
     validate_args(score_strategy)
 

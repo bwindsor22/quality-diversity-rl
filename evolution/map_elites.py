@@ -60,7 +60,7 @@ class MapElites(object):
         new_state = {}
         for l, x in states:
             if l[0:4] == "conv":
-                new_state[l] = torch.where(torch.rand_like(x) > self.mutate_poss, torch.randn_like(x), x)
+                new_state[l] = torch.where(torch.rand_like(x) <= self.mutate_poss, torch.randn_like(x), x)
             else:
                 new_state[l] = x
         return new_state
