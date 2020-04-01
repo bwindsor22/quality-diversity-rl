@@ -22,6 +22,8 @@ class MapElites(object):
                  cross_poss,
                  is_mortality,
                  max_age,
+                 is_mepgd,
+                 mepgd_possibility,
                  fitness=None,
                  feature_descriptor=None,
                  fitness_feature=None,
@@ -31,8 +33,8 @@ class MapElites(object):
         self.performances = {}
         self.secondary_solutions = {}
         self.secondary_performances = {}
-        self.mepgd = True
-        self.mepgd_poss = 0.70
+        self.is_mepgd = is_mepgd
+        self.mepgd_poss = mepgd_possibility
         self.ages = {}
         self.max_age = max_age
         self.model = model
@@ -41,8 +43,8 @@ class MapElites(object):
         self.num_iter = num_iter
         self.is_crossover = is_crossover
         self.is_mortality = is_mortality
-        self.mutate_poss = mutate_poss
         self.cross_poss = cross_poss
+        self.mutate_poss = mutate_poss
         self.fitness = fitness
         self.feature_descriptor = feature_descriptor
         self.fitness_feature = fitness_feature
@@ -52,7 +54,7 @@ class MapElites(object):
     def random_variation(self):
         logging.debug('doing random varation')
         if self.is_crossover and len(self.solutions)>2:
-            if self.mepgd == False:
+            if self.is_mepgd == False:
                 ind = random.sample(list(self.solutions.items()), 2)
                 ind = self.crossover(ind[0][1], ind[1][1])
             elif len(self.secondary_solutions) > 0:
