@@ -29,6 +29,10 @@ class MapElites(object):
 
         self.solutions = {}
         self.performances = {}
+        self.secondary_solutions = {}
+        self.secondary_performances = {}
+        self.mepgd = True
+        self.mepgd_poss = 0.70
         self.ages = {}
         self.max_age = max_age
         self.model = model
@@ -48,8 +52,21 @@ class MapElites(object):
     def random_variation(self):
         logging.debug('doing random varation')
         if self.is_crossover and len(self.solutions)>2:
-            ind = random.sample(list(self.solutions.items()), 2)
-            ind = self.crossover(ind[0][1], ind[1][1])
+            if self.mepgd == False:
+                ind = random.sample(list(self.solutions.items()), 2)
+                ind = self.crossover(ind[0][1], ind[1][1])
+            elif len(self.secondary_solutions) > 0:
+                ind = []
+                ind.append(random.choice([random.choice(list(self.solutions.items())),
+                                          random.choice(list(self.secondary_solutions.items()))]))
+                
+                ind.append(random.choice([random.choice(list(self.solutions.items())),
+                                          random.choice(list(self.secondary_solutions.items()))]))
+                
+
+        elif(len(self.secondary_solutions) > 0):
+            ind = random.choice([random.choice(list(self.solutions.values())),
+                                random.choice(list(self.secondary_solutions.values()))])
         else:
             ind = random.choice(list(self.solutions.values()))
         return self.mutation(ind)
@@ -115,7 +132,12 @@ class MapElites(object):
         if feature not in self.performances or self.performances[feature] < performance:
             logging.debug('Found better performance for feature: {}, new score: {}'.format(feature, performance))
             self.performances[feature] = performance
-            self.solutions[feature] = x 
+            self.solutions[feature] = x
+        else:
+            if random.random() > self.mepgd_poss:
+                logging.debug('Saving secondary performance for feature: {}, new score: {}'.format(feature, performance))
+                self.secondary_performances[feature] = performance
+                self.secondary_solutions[feature] = x
 
         logging.debug('releasing maker')
         self.ages[feature] = 0
