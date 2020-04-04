@@ -14,6 +14,7 @@ import torchvision.transforms as T
 from IPython import display
 
 from models.dqn import DQN
+import models.resnet
 from models.gvg_utils import get_screen
 from environment_utils.utils import get_run_file_name, find_device
 import logging
@@ -126,8 +127,9 @@ if __name__ == '__main__':
         _, _, screen_height, screen_width = init_screen.shape
         n_actions = env.action_space.n
 
-        init_model = [screen_height, screen_width, LINEAR_INPUT_SCALAR, KERNEL, n_actions]
-        policy_net = DQN(*init_model).to(device)
+        #init_model = [screen_height, screen_width, LINEAR_INPUT_SCALAR, KERNEL, n_actions]
+        init_model = [False,False]
+        policy_net = resnet18(*init_model).to(device)
         return policy_net, init_model
     net, model = get_initial_policy_net()
 

@@ -48,7 +48,7 @@ def get_initial_policy_net(level='gvgai-zelda-lvl0-v0', LINEAR_INPUT_SCALAR=8,
     n_actions = env.action_space.n
 
     init_model = [screen_height, screen_width, LINEAR_INPUT_SCALAR, KERNEL, n_actions]
-    policy_net = DQN(*init_model).to(device)
+    policy_net = resnet(*init_model).to(device)
     return policy_net, init_model
 
 def combine_scores(scores, score, win, mode):

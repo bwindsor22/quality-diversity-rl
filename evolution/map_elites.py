@@ -59,7 +59,8 @@ class MapElites(object):
         states = list(state.items())
         new_state = {}
         for l, x in states:
-            if l[0:4] == "conv":
+            #if l[0:4] == "conv":
+            if l[0:2] != "bn":
                 new_state[l] = torch.where(torch.rand_like(x) > self.mutate_poss, torch.randn_like(x), x)
             else:
                 new_state[l] = x
