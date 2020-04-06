@@ -8,6 +8,7 @@ import threading
 from environment_utils.utils import get_run_file_name
 from models.caching_environment_maker import CachingEnvironmentMaker
 from models.lockable_resource import LockableResource
+from models.resnet import resnet18
 
 
 class MapElites(object):
@@ -98,7 +99,8 @@ class MapElites(object):
             #print("morta",self.is_mortality)
             self.check_mortality()
         if len(self.solutions) < self.num_initial_solutions:
-            self.model.__init__(*self.init_model)
+            #self.model.__init__(*self.init_model)
+            self.model = resnet18()
             x = self.model.state_dict()
             #print("CREATED")
         else:

@@ -128,7 +128,9 @@ if __name__ == '__main__':
         n_actions = env.action_space.n
 
         #init_model = [screen_height, screen_width, LINEAR_INPUT_SCALAR, KERNEL, n_actions]
-        init_model = [False,False]
+        pretrain = False
+        progress = False
+        init_model = [pretrain,progress]
         policy_net = resnet18(*init_model).to(device)
         return policy_net, init_model
     net, model = get_initial_policy_net()

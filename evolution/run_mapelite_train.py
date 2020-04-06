@@ -25,6 +25,8 @@ from models.replay_memory import ReplayMemory, Transition
 from models.train_dqn import evaluate_net
 from models.caching_environment_maker import CachingEnvironmentMaker, GVGAI_BAM4D, GVGAI_RUBEN
 from environment_utils.utils import get_run_file_name, get_run_name, find_device
+from models.resnet import resnet18
+
 import threading
 logging.basicConfig(filename=get_run_file_name(),level=logging.INFO,format='[%(levelname)s] (%(threadName)-10s) %(message)s',)
 
@@ -48,8 +50,8 @@ def get_initial_policy_net(level='gvgai-zelda-lvl0-v0', LINEAR_INPUT_SCALAR=8,
     n_actions = env.action_space.n
 
     init_model = [screen_height, screen_width, LINEAR_INPUT_SCALAR, KERNEL, n_actions]
-    policy_net = resnet(*init_model).to(device)
-    return policy_net, init_model
+    policy_net = resnet18().to(device)
+    return policy_net,init_model
 
 def combine_scores(scores, score, win, mode):
     if mode == SCORE_ALL:
