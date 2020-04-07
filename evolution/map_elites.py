@@ -62,26 +62,35 @@ class MapElites(object):
         for l, x in states:
             #set up for blocks and layers of blocks unless make it all from scratch using pytorch class as reference
             #for minimal changes to mutation function
-            if l[0:4] == "conv":
-            #if l[0:2] != "bn":
+            #print(l)
+            #print(l[-6:])
+            #if l[0:4] == "conv":
+            if l[-6:] == "weight":
                 new_state[l] = torch.where(torch.rand_like(x) > self.mutate_poss, torch.randn_like(x), x)
-                
+            else:
+                new_state[l] = x
+            '''  
             elif l[0:5] == "layer":
-                print(l[0:5])
+                #print(l[0:5])
+                #print(x)
+                new_state[l] = torch.where(torch.rand_like(x) > self.mutate_poss, torch.randn_like(x), x)
+                #print("mutated layer")
+                
                 new_state[l] = self.mutate_layer(x)
-                '''
+                
                 for k,y in x:
                     if k[0:4] == "conv":
                         print(k[0:4])
                         new_state[l][k] = torch.where(torch.rand_like(x) > self.mutate_poss, torch.randn_like(x), x)
-                '''
-            else:
-                new_state[l] = x
+            '''
+
         return new_state
-    
-    def mutate_block(self, layer):
-        logging.debug('mutating block')
-        
+    '''
+    def mutate_layer(self, layer):
+        logging.debug('mutating layer')
+        states = list(layer.items())
+        for l, x in states:
+    '''
         
     
     def crossover(self, x1, x2):
