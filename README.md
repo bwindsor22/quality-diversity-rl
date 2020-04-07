@@ -13,7 +13,8 @@ A typical install and run might look like:
 
 
 #### Testing and debugging setup
-* **test gvgai library**: Run `python -m unittest test/test_bam4d.py`. If you don't see commands and actions getting printed out, try these steps:
+* There are two gvgai libraries. `install.sh` installs the ruben library, which was tested mac. `install_bam4d.sh` installs the bam4d library, which was tested on unix. 
+* **testing the bam4d gvgai library**: Run `python -m unittest test/test_bam4d.py`. If you don't see commands and actions getting printed out, try these steps:
     * Check java: try `conda install -c conda-forge/label/gcc7 openjdk` to get java. Check `java --version` shows java. Ensure `which java` points to the same java as `echo $JAVA_HOME`. `$JAVA_HOME/bin/java` should be the same as `which java`
     * Check gradle: `cd GVGAI_GYM_BAM/GVGAI_GYM/` and run `./gradlew --status`
     * If you've changed gradle or java, try reinstalling bam4d
