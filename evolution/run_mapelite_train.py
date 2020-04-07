@@ -50,8 +50,8 @@ def get_initial_policy_net(level='gvgai-zelda-lvl0-v0', LINEAR_INPUT_SCALAR=8,
     n_actions = env.action_space.n
 
     init_model = [screen_height, screen_width, LINEAR_INPUT_SCALAR, KERNEL, n_actions]
-    policy_net = resnet18().to(device)
-    return policy_net,init_model
+    policy_net = resnet18(pretrained=False, num_classes=n_actions).to(device)
+    return policy_net,n_actions
 
 def combine_scores(scores, score, win, mode):
     if mode == SCORE_ALL:
@@ -121,14 +121,14 @@ def run(num_iter, score_strategy, game, stop_after, save_model, gvgai_version, n
 
     bound_fitness_feature = partial(fitness_feature_fn, score_strategy, stop_after, game, run_name)
     init_level = f'{game}-lvl0-v0'
-    policy_net, init_model = get_initial_policy_net(level=init_level, env_maker=EnvMaker)
+    policy_net, n_actions = get_initial_policy_net(level=init_level, env_maker=EnvMaker)
 
 
     init_iter = 1
     #mutate_possibility = 0.7
     #crossover_possibility = 0.5
     map_e = MapElites(policy_net,
-                      init_model,
+                      n_actions,
                       init_iter,
                       num_iter,
                       is_crossover,

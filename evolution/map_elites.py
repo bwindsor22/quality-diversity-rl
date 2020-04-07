@@ -15,7 +15,7 @@ class MapElites(object):
     
     def __init__(self, 
                  model, 
-                 init_model,
+                 n_actions,
                  init_iter, 
                  num_iter,
                  is_crossover,
@@ -33,7 +33,7 @@ class MapElites(object):
         self.ages = {}
         self.max_age = max_age
         self.model = model
-        self.init_model = init_model
+        self.n_actions = n_actions
         self.num_initial_solutions = init_iter
         self.num_iter = num_iter
         self.is_crossover = is_crossover
@@ -126,7 +126,8 @@ class MapElites(object):
             self.check_mortality()
         if len(self.solutions) < self.num_initial_solutions:
             #self.model.__init__(*self.init_model)
-            self.model = resnet18()
+            #Going forward can use self.init_model[4] to make it more flexible
+            self.model = resnet18(pretrained = False,num_classes=self.n_actions)
             x = self.model.state_dict()
             #print("CREATED")
         else:
