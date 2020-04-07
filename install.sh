@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-echo "creating environment"
+echo "creating ruben gvgai environment, should enable tests/test_ruben.py to pass"
 python -m venv qd-env
 source qd-env/bin/activate
 
