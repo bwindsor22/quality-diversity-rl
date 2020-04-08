@@ -65,7 +65,7 @@ class MapElites(object):
             #print(l)
             #print(l[-6:])
             #if l[0:4] == "conv":
-            if l[-6:] == "weight":
+            if l[-6:] == "weight" or l[-4:] == "bias":
                 new_state[l] = torch.where(torch.rand_like(x) > self.mutate_poss, torch.randn_like(x), x)
             else:
                 new_state[l] = x
