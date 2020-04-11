@@ -53,7 +53,7 @@ class MapElites(object):
 
     def random_variation(self):
         logging.debug('doing random varation')
-        if self.is_crossover and len(self.solutions)>2:
+        if self.is_crossover and len(self.solutions)>=2:
             if self.is_mepgd == False:
                 ind = random.sample(list(self.solutions.items()), 2)
                 ind = self.crossover(ind[0][1], ind[1][1])
@@ -66,7 +66,7 @@ class MapElites(object):
                                           random.choice(list(self.secondary_solutions.items()))]))
                 
 
-        elif(len(self.secondary_solutions) > 0):
+        elif len(self.secondary_solutions) > 0 and self.is_mepgd == True:
             ind = random.choice([random.choice(list(self.solutions.values())),
                                 random.choice(list(self.secondary_solutions.values()))])
         else:
@@ -86,7 +86,7 @@ class MapElites(object):
     
     def crossover(self, x1, x2):
         logging.debug('doing crossover')
-        if random.random() < self.cross_poss:
+        if random.random() > self.cross_poss:
             return random.choice([x1, x2])
         states1 = list(x1.items())
         states2 = list(x2.items())
@@ -135,7 +135,7 @@ class MapElites(object):
             logging.debug('Found better performance for feature: {}, new score: {}'.format(feature, performance))
             self.performances[feature] = performance
             self.solutions[feature] = x
-        else:
+        elif self.is_mepgd == True:
             if random.random() > self.mepgd_poss:
                 logging.debug('Saving secondary performance for feature: {}, new score: {}'.format(feature, performance))
                 self.secondary_performances[feature] = performance
