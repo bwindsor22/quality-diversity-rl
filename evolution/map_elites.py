@@ -12,7 +12,7 @@ from models.lockable_resource import LockableResource
 
 class MapElites(object):
     
-    def __init__(self, 
+    def  __init__(self,
                  model, 
                  init_model,
                  init_iter, 
@@ -22,6 +22,8 @@ class MapElites(object):
                  cross_poss,
                  is_mortality,
                  max_age,
+                 is_mepgd,
+                 mepgd_possibility,
                  fitness=None,
                  feature_descriptor=None,
                  fitness_feature=None,
@@ -29,6 +31,10 @@ class MapElites(object):
 
         self.solutions = {}
         self.performances = {}
+        self.secondary_solutions = {}
+        self.secondary_performances = {}
+        self.is_mepgd = is_mepgd
+        self.mepgd_poss = mepgd_possibility
         self.ages = {}
         self.max_age = max_age
         self.model = model
@@ -37,8 +43,8 @@ class MapElites(object):
         self.num_iter = num_iter
         self.is_crossover = is_crossover
         self.is_mortality = is_mortality
-        self.mutate_poss = mutate_poss
         self.cross_poss = cross_poss
+        self.mutate_poss = mutate_poss
         self.fitness = fitness
         self.feature_descriptor = feature_descriptor
         self.fitness_feature = fitness_feature
@@ -47,9 +53,22 @@ class MapElites(object):
 
     def random_variation(self):
         logging.debug('doing random varation')
-        if self.is_crossover and len(self.solutions)>2:
-            ind = random.sample(list(self.solutions.items()), 2)
-            ind = self.crossover(ind[0][1], ind[1][1])
+        if self.is_crossover and len(self.solutions)>=2:
+            if self.is_mepgd == False:
+                ind = random.sample(list(self.solutions.items()), 2)
+                ind = self.crossover(ind[0][1], ind[1][1])
+            elif len(self.secondary_solutions) > 0:
+                ind = []
+                ind.append(random.choice([random.choice(list(self.solutions.items())),
+                                          random.choice(list(self.secondary_solutions.items()))]))
+                
+                ind.append(random.choice([random.choice(list(self.solutions.items())),
+                                          random.choice(list(self.secondary_solutions.items()))]))
+                
+
+        elif len(self.secondary_solutions) > 0 and self.is_mepgd == True:
+            ind = random.choice([random.choice(list(self.solutions.values())),
+                                random.choice(list(self.secondary_solutions.values()))])
         else:
             ind = random.choice(list(self.solutions.values()))
         return self.mutation(ind)
@@ -59,15 +78,15 @@ class MapElites(object):
         states = list(state.items())
         new_state = {}
         for l, x in states:
-            if l[0:4] == "conv":
-                new_state[l] = torch.where(torch.rand_like(x) <= self.mutate_poss, torch.randn_like(x), x)
+            if l[-6:] == "weight" or l[-4:] == "bias":
+                new_state[l] = torch.where(torch.rand_like(x) > self.mutate_poss, torch.randn_like(x), x)
             else:
                 new_state[l] = x
         return new_state
     
     def crossover(self, x1, x2):
         logging.debug('doing crossover')
-        if random.random() < self.cross_poss:
+        if random.random() > self.cross_poss:
             return random.choice([x1, x2])
         states1 = list(x1.items())
         states2 = list(x2.items())
@@ -91,7 +110,7 @@ class MapElites(object):
             else:
                 self.ages[key] += 1
     
-    def me_iteration(self,env_maker, counter):
+    def me_iteration(self, env_maker, counter):
         env_maker.acquire()
         if self.is_mortality == True:
             #print("morta",self.is_mortality)
@@ -115,7 +134,12 @@ class MapElites(object):
         if feature not in self.performances or self.performances[feature] < performance:
             logging.debug('Found better performance for feature: {}, new score: {}'.format(feature, performance))
             self.performances[feature] = performance
-            self.solutions[feature] = x 
+            self.solutions[feature] = x
+        elif self.is_mepgd == True:
+            if random.random() > self.mepgd_poss:
+                logging.debug('Saving secondary performance for feature: {}, new score: {}'.format(feature, performance))
+                self.secondary_performances[feature] = performance
+                self.secondary_solutions[feature] = x
 
         logging.debug('releasing maker')
         self.ages[feature] = 0

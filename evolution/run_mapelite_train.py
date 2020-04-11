@@ -102,8 +102,9 @@ def validate_args(score_strategy,):
 @click.option('--is_mortality', is_flag=True, help = 'Turn mortality on or off for elites')
 @click.option('--is_crossover', is_flag=True, help = 'Turn crossover on or off for generating new models')
 @click.option('--crossover_possibility', default = 0.5, help = 'Turn crossover on or off for generating new models')
-@click.option('--mutate_possibility', default = 0.9, help = 'Turn mutate on or off for generating new models')
-def run(num_iter, score_strategy, game, stop_after, save_model, gvgai_version, num_threads, log_level, max_age,is_mortality,is_crossover,mutate_possibility,crossover_possibility):
+@click.option('--mutate_possibility', default = 0.7, help = 'Turn mutate on or off for generating new models')
+@click.option('--mepgd_possibility', default = 0.7, help = 'Turn mutate on or off for generating new models')
+def run(num_iter, score_strategy, game, stop_after, save_model, gvgai_version, num_threads, log_level, max_age,is_mortality,is_crossover,crossover_possibility,mutate_possibility,mepgd_possibility,is_mepgd):
     validate_args(score_strategy)
 
     run_name = f'{game}-iter-{num_iter}-strat-{score_strategy}-stop-after-{stop_after}'
@@ -134,6 +135,8 @@ def run(num_iter, score_strategy, game, stop_after, save_model, gvgai_version, n
                       crossover_possibility,
                       is_mortality,
                       max_age,
+                      is_mepgd,
+                      mepgd_possibility,
                       fitness_feature=bound_fitness_feature,
                       gvgai_version=gvgai_version)
     performances, solutions = map_e.run(num_threads)
