@@ -6,6 +6,7 @@ import numpy as np
 import threading
 
 from environment_utils.utils import get_run_file_name
+from evolution.cmame.cmame import CMAEmitters
 from models.caching_environment_maker import CachingEnvironmentMaker
 from models.lockable_resource import LockableResource
 
@@ -27,7 +28,8 @@ class MapElites(object):
                  fitness=None,
                  feature_descriptor=None,
                  fitness_feature=None,
-                 gvgai_version=None):
+                 gvgai_version=None,
+                 is_cmame=False):
 
         self.solutions = {}
         self.performances = {}
@@ -45,11 +47,17 @@ class MapElites(object):
         self.is_mortality = is_mortality
         self.cross_poss = cross_poss
         self.mutate_poss = mutate_poss
-        self.fitness = fitness
+        self.fitness = fitness # not used
         self.feature_descriptor = feature_descriptor
         self.fitness_feature = fitness_feature
         self.gvgai_version = gvgai_version
         self.log_counts = 1000 # number of times to log intermediate results
+
+        self.cmame = is_cmame
+        if self.cmame:
+            self.model.__init__(*self.init_model)
+            initial_state_dict = self.model.state_dict()
+            self.emitters = CMAEmitters(initial_state_dict)
 
     def random_variation(self):
         logging.debug('doing random varation')
@@ -78,6 +86,7 @@ class MapElites(object):
         states = list(state.items())
         new_state = {}
         for l, x in states:
+            # new_state[l] = torch.where(torch.rand_like(x) > self.mutate_poss, torch.randn_like(x), x)
             if l[-6:] == "weight" or l[-4:] == "bias":
                 new_state[l] = torch.where(torch.rand_like(x) > self.mutate_poss, torch.randn_like(x), x)
             else:
@@ -109,7 +118,7 @@ class MapElites(object):
                 del self.ages[key]
             else:
                 self.ages[key] += 1
-    
+
     def me_iteration(self, env_maker, counter):
         env_maker.acquire()
         if self.is_mortality == True:
@@ -117,29 +126,35 @@ class MapElites(object):
             self.check_mortality()
         if len(self.solutions) < self.num_initial_solutions:
             self.model.__init__(*self.init_model)
-            x = self.model.state_dict()
+            model_state = self.model.state_dict()
             #print("CREATED")
+        elif self.cmame:
+            model_state = self.emitters.ask()
         else:
             #print("VARIATING")
 
-            x = self.random_variation()
+            model_state = self.random_variation()
             
-        self.model.load_state_dict(x)
+        self.model.load_state_dict(model_state)
         if self.fitness_feature is not None:
             performance, feature = self.fitness_feature(self.model, env_maker) if env_maker  else\
                                     self.fitness_feature(self.model)
-        else:
-            feature = self.feature_descriptor(x)
+        else: # not used
+            feature = self.feature_descriptor(model_state)
             performance = self.fitness(self.model)
+
+        if self.cmame:
+            self.emitters.tell(feature, model_state, performance)
+
         if feature not in self.performances or self.performances[feature] < performance:
             logging.debug('Found better performance for feature: {}, new score: {}'.format(feature, performance))
             self.performances[feature] = performance
-            self.solutions[feature] = x
+            self.solutions[feature] = model_state
         elif self.is_mepgd == True:
             if random.random() > self.mepgd_poss:
                 logging.debug('Saving secondary performance for feature: {}, new score: {}'.format(feature, performance))
                 self.secondary_performances[feature] = performance
-                self.secondary_solutions[feature] = x
+                self.secondary_solutions[feature] = model_state
 
         logging.debug('releasing maker')
         self.ages[feature] = 0

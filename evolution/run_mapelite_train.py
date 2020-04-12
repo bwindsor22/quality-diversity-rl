@@ -104,7 +104,10 @@ def validate_args(score_strategy,):
 @click.option('--crossover_possibility', default = 0.5, help = 'Turn crossover on or off for generating new models')
 @click.option('--mutate_possibility', default = 0.7, help = 'Turn mutate on or off for generating new models')
 @click.option('--mepgd_possibility', default = 0.7, help = 'Turn mutate on or off for generating new models')
-def run(num_iter, score_strategy, game, stop_after, save_model, gvgai_version, num_threads, log_level, max_age,is_mortality,is_crossover,crossover_possibility,mutate_possibility,mepgd_possibility,is_mepgd):
+@click.option('--is_mepgd', is_flag=True, help = 'Is megpd')
+@click.option('--cmame', is_flag=True, help='run CMA-ME')
+def run(num_iter, score_strategy, game, stop_after, save_model, gvgai_version, num_threads, log_level, max_age,is_mortality,
+        is_crossover,crossover_possibility,mutate_possibility,mepgd_possibility,is_mepgd, cmame):
     validate_args(score_strategy)
 
     run_name = f'{game}-iter-{num_iter}-strat-{score_strategy}-stop-after-{stop_after}'
@@ -138,7 +141,8 @@ def run(num_iter, score_strategy, game, stop_after, save_model, gvgai_version, n
                       is_mepgd,
                       mepgd_possibility,
                       fitness_feature=bound_fitness_feature,
-                      gvgai_version=gvgai_version)
+                      gvgai_version=gvgai_version,
+                      is_cmame=cmame)
     performances, solutions = map_e.run(num_threads)
     logging.info('Finished performances')
     logging.info('Final performances:')
