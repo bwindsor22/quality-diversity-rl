@@ -1,4 +1,4 @@
-import evolution.cmame.pycma.cma.purecma as pcma
+import evolution.cmame.purecma as pcma
 from pprint import pprint
 initial = [10, 10]
 es = pcma.CMAES([0, 0], 0.5)

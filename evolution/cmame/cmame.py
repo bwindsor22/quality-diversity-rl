@@ -5,7 +5,7 @@ import random
 from pprint import pprint
 
 import torch
-from evolution.cmame.pycma.cma.purecma import CMAES
+from evolution.cmame.purecma import CMAES
 
 class CMAEmitters:
     def __init__(self, initial_state_dict):
@@ -17,7 +17,7 @@ class CMAEmitters:
         self.initial_state_dict = initial_state_dict
         state_flattened = self._flatten_model_state(initial_state_dict)
         self.num_params = len(state_flattened)
-        self.pop_size = 4 # self.pop_size(self.num_params)
+        self.pop_size(self.num_params)
         print('Set up CMA for {} params, {} pop size'.format(self.num_params, self.pop_size))
 
 
