@@ -25,8 +25,6 @@ from models.replay_memory import ReplayMemory, Transition
 from models.train_dqn import evaluate_net
 from models.caching_environment_maker import CachingEnvironmentMaker, GVGAI_BAM4D, GVGAI_RUBEN
 from environment_utils.utils import get_run_file_name, get_run_name, find_device
-import threading
-logging.basicConfig(filename=get_run_file_name(),level=logging.INFO,format='[%(levelname)s] (%(threadName)-10s) %(message)s',)
 
 
 SCORE_ALL = 'score_all'
@@ -104,7 +102,7 @@ def validate_args(score_strategy,):
 @click.option('--crossover_possibility', default = 0.5, help = 'Turn crossover on or off for generating new models')
 @click.option('--mutate_possibility', default = 0.7, help = 'Turn mutate on or off for generating new models')
 @click.option('--mepgd_possibility', default = 0.7, help = 'Turn mutate on or off for generating new models')
-@click.option('--is_mepgd', is_flag=True, help = 'Is megpd')
+@click.option('--is_mepgd', is_flag=True, help = 'Turn crossover on or off for generating new models')
 @click.option('--cmame', is_flag=True, help='run CMA-ME')
 def run(num_iter, score_strategy, game, stop_after, save_model, gvgai_version, num_threads, log_level, max_age,is_mortality,
         is_crossover,crossover_possibility,mutate_possibility,mepgd_possibility,is_mepgd, cmame):

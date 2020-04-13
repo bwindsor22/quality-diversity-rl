@@ -3,16 +3,16 @@ from math import log
 from copy import deepcopy
 import random
 from pprint import pprint
+import logging
 
 import torch
-from evolution.cmame.purecma import CMAES
+import cma
 
 class CMAEmitters:
     def __init__(self, initial_state_dict):
         self.emitters = dict() # feature_descriptor -> emitter
         self.data_queue = defaultdict(list) # feature_descriptor -> items to be told to emitter (batch update)
         self.performances_queue = defaultdict(list)
-        self.next_eval_queue = dict()
         self.default_sigma = 0.5
         self.initial_state_dict = initial_state_dict
         state_flattened = self._flatten_model_state(initial_state_dict)
@@ -31,35 +31,37 @@ class CMAEmitters:
         state_flattened = self._flatten_model_state(model_state)
         if feature_descriptor not in self.emitters:
             initial_vector = [0 for _ in range(self.num_params)]
-            cmaes = CMAES(initial_vector, self.default_sigma, popsize=self.pop_size)
+            cmaes = cma.CMAEvolutionStrategy(initial_vector, self.default_sigma)
             self.emitters[feature_descriptor] = cmaes
 
         self.data_queue[feature_descriptor].append(state_flattened)
         # cma is set to minimize, so we invert
         self.performances_queue[feature_descriptor].append(performance.item() * -1)
         if len(self.data_queue[feature_descriptor]) == self.pop_size:
-            print('TELLING FEATURES')
+            logging.info('TELLING FEATURES')
             pprint(self.performances_queue[feature_descriptor])
             self.emitters[feature_descriptor].tell(self.data_queue[feature_descriptor],
                                                    self.performances_queue[feature_descriptor])
             self.data_queue[feature_descriptor].clear()
             self.performances_queue[feature_descriptor].clear()
-        print('to ad to perfs')
-        pprint(self.performances_queue)
+        logging.info('recorded perfs to be told')
+        logging.info(pprint.pformat(self.performances_queue))
 
 
     def ask(self):
         """
         :return: a sample network for evaluation
         """
+        logging.info('ASK for next network')
         model_type = random.choice(list(self.emitters.keys()))
-        print('returning model of type', model_type)
-        if model_type not in self.next_eval_queue or not self.next_eval_queue[model_type]:
-            self.next_eval_queue[model_type] = self.emitters[model_type].ask()
-        flattened_state = self.next_eval_queue[model_type].pop(0)
-        print('pending to add')
-        pprint(self.next_eval_queue.keys())
-        return self._model_state(flattened_state)
+        logging.info('returning model of type %s', model_type)
+        # if model_type not in self.next_eval_queue or not self.next_eval_queue[model_type]:
+        #     self.next_eval_queue[model_type] = self.emitters[model_type].ask()
+        # flattened_state = self.next_eval_queue[model_type].pop(0)
+        flattened_state = self.emitters[model_type].ask(number=1)
+        model = self._model_state(flattened_state[0].tolist())
+        logging.info('returning model')
+        return model
 
     @staticmethod
     def _flatten_model_state(model_state):
