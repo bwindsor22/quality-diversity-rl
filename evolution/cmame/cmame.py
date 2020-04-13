@@ -2,7 +2,7 @@ from collections import defaultdict
 from math import log
 from copy import deepcopy
 import random
-from pprint import pprint
+from pprint import pformat, pprint
 import logging
 
 import torch
@@ -45,7 +45,7 @@ class CMAEmitters:
             self.data_queue[feature_descriptor].clear()
             self.performances_queue[feature_descriptor].clear()
         logging.info('recorded perfs to be told')
-        logging.info(pprint.pformat(self.performances_queue))
+        logging.info(pformat(self.performances_queue))
 
 
     def ask(self):
