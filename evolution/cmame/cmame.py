@@ -39,13 +39,13 @@ class CMAEmitters:
         self.performances_queue[feature_descriptor].append(performance.item() * -1)
         if len(self.data_queue[feature_descriptor]) == self.pop_size:
             logging.info('TELLING FEATURES')
-            pprint(self.performances_queue[feature_descriptor])
+            logging.info(pformat(self.performances_queue[feature_descriptor]))
             self.emitters[feature_descriptor].tell(self.data_queue[feature_descriptor],
                                                    self.performances_queue[feature_descriptor])
             self.data_queue[feature_descriptor].clear()
             self.performances_queue[feature_descriptor].clear()
-        logging.info('recorded perfs to be told')
-        logging.info(pformat(self.performances_queue))
+        logging.debug('recorded perfs to be told')
+        logging.debug(pformat(self.performances_queue))
 
 
     def ask(self):
@@ -54,13 +54,12 @@ class CMAEmitters:
         """
         logging.info('ASK for next network')
         model_type = random.choice(list(self.emitters.keys()))
-        logging.info('returning model of type %s', model_type)
         # if model_type not in self.next_eval_queue or not self.next_eval_queue[model_type]:
         #     self.next_eval_queue[model_type] = self.emitters[model_type].ask()
         # flattened_state = self.next_eval_queue[model_type].pop(0)
         flattened_state = self.emitters[model_type].ask(number=1)
         model = self._model_state(flattened_state[0].tolist())
-        logging.info('returning model')
+        logging.info('returning model of type %s', model_type)
         return model
 
     @staticmethod

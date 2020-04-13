@@ -1,12 +1,14 @@
 import evolution.cmame.purecma as pcma
 import cma
 from pprint import pprint
+
+def to_minimize(x, y):
+    return pow(x - 1, 2) + pow(y - 1, 2)
+
 def pure_cma():
     initial = [10, 10]
     es = pcma.CMAES([0, 0], 0.5)
     num_iter = 50
-    def to_minimize(x, y):
-        return pow(x - 1, 2) + pow(y - 1, 2)
 
     i = 0
     while i < num_iter:
@@ -17,13 +19,16 @@ def pure_cma():
         es.tell(X, evals)
 
 def fast_cma():
-    es = cma.CMAEvolutionStrategy(2000 * [0], 0.5)
-    num_iter = 1000
+    es = cma.CMAEvolutionStrategy(2 * [10], 0.5)
+    num_iter = 50
     i = 0
+    pop_size = len(es.ask())
     while not es.stop() and i < num_iter:
         i += 1
-        solutions = es.ask()
-        pprint(solutions)
-        es.tell(solutions, [cma.ff.rosen(x) for x in solutions])
+        sols = []
+        for _ in range(pop_size):
+            sols.extend(es.ask(number=1))
+        pprint(sols)
+        es.tell(sols, [to_minimize(*x) for x in sols])
 
 fast_cma()
