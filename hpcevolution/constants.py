@@ -6,5 +6,6 @@ RESULTS_DIR_PATHLIB = Path(__file__).parent / 'results'
 ACTIVE_AGENTS_DIR = str(ACTIVE_AGENTS_DIR_PATHLIB)
 
 ACTIVE_EXTENSION = '.active'
+MODEL_EXTENSION = '.model'
 
 SLEEP_TIME = 5

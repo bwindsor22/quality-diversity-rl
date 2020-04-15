@@ -1,23 +1,25 @@
 import time
 
+import torch
 import pickle
 from pathlib import Path
-from hpcevolution.constants import SLEEP_TIME, ACTIVE_AGENTS_DIR_PATHLIB, ACTIVE_EXTENSION, RESULTS_DIR_PATHLIB
+
+from evolution.hpc_map_elites import HPCMapElites
+from hpcevolution.constants import SLEEP_TIME, ACTIVE_AGENTS_DIR_PATHLIB, ACTIVE_EXTENSION, RESULTS_DIR_PATHLIB, \
+    WORK_DIR_PATHLIB
 from hpcevolution.result import Result
 
 
 class Parent:
     def __init__(self):
-        self.map_elite_results = {}
-
-    def create_children(self):
-        pass
+        self.map_elites = HPCMapElites()
 
     def run(self):
         while True:
-            children = self.get_available_childrent()
-            for child in children:
-                self.write_work_for_child()
+            children = self.get_available_children()
+            for child_name in children:
+                run_data = self.generate_run_data()
+                self.write_work_for_child(run_data, child_name)
 
             results = self.collect_written_results()
             for result in results:
@@ -37,12 +39,15 @@ class Parent:
             results.append(pickle.load(file.open()))
         return results
 
-    def update_map_elites_results(self, result: List[Result]):
-        pass
+    def update_map_elites_results(self, result: Result):
+        self.map_elites.update_result(result.network, result.feature, result.feature)
+
+    def generate_run_data(self):
+        model = self.map_elites.next_model()
+        return model
 
 
-    def write_work_for_child(self):
-        # WRITE NEURAL NETWORK
-        pass
-
+    def write_work_for_child(self, run_data, child_name):
+        path = WORK_DIR_PATHLIB / child_name  + '.model'
+        torch.save(run_data, str(path))
 
