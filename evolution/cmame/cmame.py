@@ -38,7 +38,7 @@ class CMAEmitters:
         # cma is set to minimize, so we invert
         self.performances_queue[feature_descriptor].append(performance.item() * -1)
         if len(self.data_queue[feature_descriptor]) == self.pop_size:
-            logging.info('TELLING FEATURES')
+            logging.info('TELLING FEATURES, lower is better')
             logging.info(pformat(self.performances_queue[feature_descriptor]))
             self.emitters[feature_descriptor].tell(self.data_queue[feature_descriptor],
                                                    self.performances_queue[feature_descriptor])
