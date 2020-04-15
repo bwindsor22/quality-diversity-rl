@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 echo "creating ruben gvgai environment, should enable tests/test_ruben.py to pass"
-python -m venv qd-env
+python3 -m venv qd-env
+>>>>>>> Stashed changes
 source qd-env/bin/activate
 
 echo "installing basic files"
