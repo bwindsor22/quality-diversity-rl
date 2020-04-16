@@ -17,7 +17,10 @@ import torch.nn.functional as F
 import torch.optim as optim
 import torchvision.transforms as T
 from IPython import display
+
+from evolution.initialization_utils import get_initial_model
 from evolution.map_elites import MapElites
+from evolution.singe_host_map_elites import SingleHostMapElites
 from models.dqn import DQN
 from models.gvg_utils import get_screen
 from models.gvg_utils import get_screen
@@ -31,23 +34,6 @@ SCORE_ALL = 'score_all'
 SCORE_WINNING = 'score_winning'
 SCORE_LOSING = 'score_losing'
 
-def get_initial_policy_net(level='gvgai-zelda-lvl0-v0', LINEAR_INPUT_SCALAR=8,
-                           KERNEL=5, env_maker=None):
-    if env_maker:
-        env = env_maker(level)
-    else:
-        import gym_gvgai
-        env = gym.make(level)
-
-    device = find_device()
-    init_screen = get_screen(env, device)
-
-    _, _, screen_height, screen_width = init_screen.shape
-    n_actions = env.action_space.n
-
-    init_model = [screen_height, screen_width, LINEAR_INPUT_SCALAR, KERNEL, n_actions]
-    policy_net = DQN(*init_model).to(device)
-    return policy_net, init_model
 
 def combine_scores(scores, score, win, mode):
     if mode == SCORE_ALL:
@@ -117,17 +103,14 @@ def run(num_iter, score_strategy, game, stop_after, save_model, gvgai_version, n
     logging.info('Run file %s', run_name)
     print('logging setup')
 
-    EnvMaker = CachingEnvironmentMaker(version=gvgai_version)
-
     bound_fitness_feature = partial(fitness_feature_fn, score_strategy, stop_after, game, run_name)
-    init_level = f'{game}-lvl0-v0'
-    policy_net, init_model = get_initial_policy_net(level=init_level, env_maker=EnvMaker)
 
+    policy_net, init_model = get_initial_model(gvgai_version, game)
 
     init_iter = 1
     #mutate_possibility = 0.7
     #crossover_possibility = 0.5
-    map_e = MapElites(policy_net,
+    map_e = SingleHostMapElites(policy_net,
                       init_model,
                       init_iter,
                       num_iter,

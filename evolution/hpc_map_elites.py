@@ -9,12 +9,9 @@ class HPCMapElites(MapElites):
         if len(self.solutions) < self.num_initial_solutions:
             self.model.__init__(*self.init_model)
             model_state = self.model.state_dict()
-            # print("CREATED")
         elif self.cmame:
             model_state = self.emitters.ask()
         else:
-            # print("VARIATING")
-
             model_state = self.random_variation()
         return model_state
 
