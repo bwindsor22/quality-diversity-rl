@@ -35,6 +35,9 @@ class Parent:
                   gvgai_version=gvgai_version,
                   is_cmame=cmame)
 
+    # import pickle
+    # result = Result(run_data.model, '0-0-0-0-0', 10)
+    # pickle.dump(result, open('/Users/bradwindsor/ms_projects/qd-gen/gameQD/hpcevolution/results/1234.result', 'wb'))
     def run(self):
         while self.evaluated_so_far < self.total_to_evaluate:
             children = self.get_available_children()
@@ -58,16 +61,17 @@ class Parent:
         results_files = RESULTS_DIR_PATHLIB.glob('*.pkl')
         results = []
         for file in results_files:
-            results.append(pickle.load(file.open()))
+            results.append(pickle.load(file.open('rb')))
         return results
 
     def update_map_elites_results(self, result: Result):
-        self.map_elites.update_result(result.network, result.feature, result.feature)
+        self.map_elites.update_result(result.network, result.feature, result.fitness)
 
     def generate_run_data(self):
         model = self.map_elites.next_model()
         return Work(model, None)
 
     def write_work_for_child(self, work, child_name):
-        path = WORK_DIR_PATHLIB / child_name  + '.pkl'
-        pickle.dump(work, path.open())
+        path = WORK_DIR_PATHLIB / child_name
+        path = path.with_suffix('.pkl')
+        pickle.dump(work, path.open('wb'))

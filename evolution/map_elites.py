@@ -1,24 +1,17 @@
-import random
-import time
-import torch
 import logging
-import numpy as np
-import threading
-import psutil
-import multiprocessing
+import random
 
-from environment_utils.utils import get_run_file_name
+import torch
+
 from evolution.cmame.cmame import CMAEmitters
-from models.caching_environment_maker import CachingEnvironmentMaker
-from models.lockable_resource import LockableResource
 
 
 class MapElites(object):
-    
-    def  __init__(self,
-                 model, 
+
+    def __init__(self,
+                 model,
                  init_model,
-                 init_iter, 
+                 init_iter,
                  num_iter,
                  is_crossover,
                  mutate_poss,
@@ -49,11 +42,11 @@ class MapElites(object):
         self.is_mortality = is_mortality
         self.cross_poss = cross_poss
         self.mutate_poss = mutate_poss
-        self.fitness = fitness # not used
+        self.fitness = fitness  # not used
         self.feature_descriptor = feature_descriptor
         self.fitness_feature = fitness_feature
         self.gvgai_version = gvgai_version
-        self.log_counts = 1000 # number of times to log intermediate results
+        self.log_counts = 1000  # number of times to log intermediate results
 
         self.cmame = is_cmame
         if self.cmame:
@@ -63,7 +56,7 @@ class MapElites(object):
 
     def random_variation(self):
         logging.debug('doing random varation')
-        if self.is_crossover and len(self.solutions)>=2:
+        if self.is_crossover and len(self.solutions) >= 2:
             if self.is_mepgd == False:
                 ind = random.sample(list(self.solutions.items()), 2)
                 ind = self.crossover(ind[0][1], ind[1][1])
@@ -71,18 +64,18 @@ class MapElites(object):
                 ind = []
                 ind.append(random.choice([random.choice(list(self.solutions.items())),
                                           random.choice(list(self.secondary_solutions.items()))]))
-                
+
                 ind.append(random.choice([random.choice(list(self.solutions.items())),
                                           random.choice(list(self.secondary_solutions.items()))]))
-                
+
 
         elif len(self.secondary_solutions) > 0 and self.is_mepgd == True:
             ind = random.choice([random.choice(list(self.solutions.values())),
-                                random.choice(list(self.secondary_solutions.values()))])
+                                 random.choice(list(self.secondary_solutions.values()))])
         else:
             ind = random.choice(list(self.solutions.values()))
         return self.mutation(ind)
-    
+
     def mutation(self, state):
         logging.debug('doing mutation')
         states = list(state.items())
@@ -94,7 +87,7 @@ class MapElites(object):
             else:
                 new_state[l] = x
         return new_state
-    
+
     def crossover(self, x1, x2):
         logging.debug('doing crossover')
         if random.random() > self.cross_poss:
@@ -109,14 +102,12 @@ class MapElites(object):
             child[l_1] = random.choice([s_1, s_2])
         return child
 
-    
     def check_mortality(self):
-        for key,value in list(self.ages.items()):
+        for key, value in list(self.ages.items()):
             if value >= self.max_age:
-                #print("Agent Died")
+                # print("Agent Died")
                 del self.performances[key]
                 del self.solutions[key]
                 del self.ages[key]
             else:
                 self.ages[key] += 1
-
