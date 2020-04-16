@@ -15,6 +15,12 @@ from hpcevolution.result import Result
 class Parent:
     def __init__(self, num_iter, score_strategy, game, stop_after, save_model, gvgai_version, num_threads, log_level, max_age, is_mortality,
         is_crossover, crossover_possibility, mutate_possibility, mepgd_possibility, is_mepgd, cmame):
+        self.scoring_strategy = score_strategy
+        self.score_strategy = score_strategy
+        self.game = game
+        self.stop_after = stop_after
+        self.run_name = f'{game}-iter-{num_iter}-strat-{score_strategy}-stop-after-{stop_after}'
+
 
         policy_net, init_model = get_initial_model(gvgai_version, game)
         init_iter = 1
@@ -69,9 +75,10 @@ class Parent:
 
     def generate_run_data(self):
         model = self.map_elites.next_model()
-        return Work(model, None)
+        return Work(model, self.score_strategy, self.game, self.stop_after, self.run_name)
 
     def write_work_for_child(self, work, child_name):
         path = WORK_DIR_PATHLIB / child_name
         path = path.with_suffix('.pkl')
+        path.unlink(missing_ok=True)
         pickle.dump(work, path.open('wb'))

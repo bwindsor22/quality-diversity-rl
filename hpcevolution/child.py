@@ -2,6 +2,9 @@ import time
 import result
 import pickle
 import os
+
+from evolution.run_single_host_mapelite_train import SCORE_ALL, SCORE_WINNING, SCORE_LOSING
+from hpcevolution.result import Result
 from models.train_dqn import evaluate_net
 from hpcevolution.constants import SLEEP_TIME, ACTIVE_AGENTS_DIR_PATHLIB, ACTIVE_EXTENSION, RESULTS_DIR_PATHLIB, \
     WORK_DIR_PATHLIB
@@ -37,11 +40,11 @@ def fitness_feature_fn(score_strategy, stop_after, game, run_name, policy_net, e
     return fitness, feature_descriptor
 
 class Child:
-    def __init__(self, unique_id, env_maker):
+    def __init__(self, unique_id, env_maker, run_name):
         self.id = unique_id
         self.is_available = False
         self.env_maker = env_maker
-        pass
+        self.run_name = run_name
 
     def do_task(self):
         while True:
@@ -56,7 +59,8 @@ class Child:
 
     def parse_received_task(self):
         # LOAD NN FROM DISK
-        path = WORK_DIR_PATHLIB / child_name  + '.pkl'
+        path = WORK_DIR_PATHLIB / self.id
+        path = path.with_suffix('.pkl')
         task = pickle.load(open(path, 'rb'))
         return task
 
@@ -64,7 +68,7 @@ class Child:
         #RUN TRAIN_DQN
 
         fitness, feature = fitness_feature_fn(task.score_strategy, task.stop_after, task.game, 
-                                                        run_name, task.model, self.env_maker)
+                                                        self.run_name, task.model, self.env_maker)
         return feature,fitness
         
 
@@ -76,17 +80,14 @@ class Child:
 
     def signal_available(self):
         # WRITE FILE "CHILD 1 AVAILABLE"
-        fn = "child_" + self.id + ".active"
-        f = open(fn,"x")
+        fn = ACTIVE_AGENTS_DIR_PATHLIB / self.id
+        fn = fn.with_suffix(self.id + ".active")
+        fn.touch()
         return
 
     def signal_unavailable(self):
         # DELETE FILE "CHILD 1 AVAILABLE"
-        fn = "child_" + self.id + ".active"
-
-        try:
-            os.remove(fn)
-        except OSError:
-            pass
-
+        fn = ACTIVE_AGENTS_DIR_PATHLIB / self.id
+        fn = fn.with_suffix(self.id + ".active")
+        fn.unlink()
         return
