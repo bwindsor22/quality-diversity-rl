@@ -4,7 +4,7 @@ import threading
 import time
 
 import numpy as np
-import psutil
+#import psutil
 
 from evolution.map_elites import MapElites
 from models.caching_environment_maker import CachingEnvironmentMaker
@@ -125,8 +125,8 @@ class SingleHostMapElites(MapElites):
 
             if i != 0 and i % 20 == 0:
                 logging.info('CYCLING ENVIRONMENTS')
-                logging.info('virtual mem %s', str(psutil.virtual_memory()))
-                logging.info('swap mem %s', str(psutil.swap_memory()))
+                #logging.info('virtual mem %s', str(psutil.virtual_memory()))
+                #logging.info('swap mem %s', str(psutil.swap_memory()))
                 active_threads = [t for t in threading.enumerate() if not t is main_thread]
                 # active_threads = [p for p in multiprocessing.active_children() if not p is main_thread]
                 num_active = len(active_threads)
@@ -142,8 +142,8 @@ class SingleHostMapElites(MapElites):
                 del env_makers
                 logging.info('sleeping %d', 5)
                 time.sleep(5)
-                logging.info('virtual mem %s', str(psutil.virtual_memory()))
-                logging.info('swap mem %s', str(psutil.swap_memory()))
+                #logging.info('virtual mem %s', str(psutil.virtual_memory()))
+                #logging.info('swap mem %s', str(psutil.swap_memory()))
                 active_threads = [t for t in threading.enumerate() if not t is main_thread]
                 # active_threads = [p for p in multiprocessing.active_children() if not p is main_thread]
                 num_active = len(active_threads)
