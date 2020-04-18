@@ -25,7 +25,7 @@ from models.dqn import DQN
 from models.gvg_utils import get_screen
 from models.gvg_utils import get_screen
 from models.replay_memory import ReplayMemory, Transition
-from models.train_dqn import evaluate_net
+from models.evaluate_model import evaluate_net
 from models.caching_environment_maker import CachingEnvironmentMaker, GVGAI_BAM4D, GVGAI_RUBEN
 from environment_utils.utils import get_run_file_name, get_run_name, find_device
 

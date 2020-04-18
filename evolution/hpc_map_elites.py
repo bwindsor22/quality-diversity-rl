@@ -17,8 +17,9 @@ class HPCMapElites(MapElites):
 
 
     def update_result(self, network, feature, fitness):
+        logging.info('Updating feature {}, performance {}'.format(feature, fitness))
         if feature not in self.performances or self.performances[feature] < fitness:
-            logging.debug('Found better performance for feature: {}, new score: {}'.format(feature, fitness))
+            logging.info('Found better performance for feature: {}, new score: {}'.format(feature, fitness))
             self.performances[feature] = fitness
             self.solutions[feature] = network
-        logging.info('Updated result')
+        logging.info('updated map elites with result')

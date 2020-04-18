@@ -1,11 +1,11 @@
 from pathlib import Path
-ACTIVE_AGENTS_DIR_PATHLIB = Path(__file__).parent / 'active_agents'
+AVAILABLE_AGENTS_DIR_PATHLIB = Path(__file__).parent / 'available_agents'
 WORK_DIR_PATHLIB = Path(__file__).parent / 'work_todo'
 RESULTS_DIR_PATHLIB = Path(__file__).parent / 'results'
 
-ACTIVE_AGENTS_DIR = str(ACTIVE_AGENTS_DIR_PATHLIB)
+# AVAILABLE_AGENTS_DIR = str(AVAILABLE_AGENTS_DIR_PATHLIB)
 
-ACTIVE_EXTENSION = '.active'
+AVAILABLE_EXTENSION = '.available'
 MODEL_EXTENSION = '.model'
 
 SLEEP_TIME = 5
