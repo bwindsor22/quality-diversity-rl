@@ -7,9 +7,8 @@
 #SBATCH --output=/sbatch/scratch/$USER/quality-diversity-rl/qdrl.out
 
 module purge
-module load gcc/6.3.0
-source /share/apps/anaconda3/5.3.1/etc/profile.d/conda.sh
-conda activate thesis
+module load jdk/11.0.4
+source /scratch/bw1879-share/py3.7/bin/activate
 
 
 python child.py
