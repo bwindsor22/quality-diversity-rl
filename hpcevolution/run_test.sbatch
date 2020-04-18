@@ -14,4 +14,4 @@ module load gcc/6.3.0
 module load python3/intel/3.7.3 
 module load jdk/11.0.4
 
-python test/test_bam4d.py
+python -m unittest test/test_bam4d.py
