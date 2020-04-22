@@ -62,8 +62,7 @@ class Child:
 
     def run(self):
         while True:
-            logging.info('processed so far')
-            logging.info(str(self.tasks_processed))
+            logging.info('processed so far %d', len(self.tasks_processed))
             self.signal_unavailable()
             task_file = self.parse_received_task()
             if task_file:

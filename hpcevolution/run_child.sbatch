@@ -6,7 +6,7 @@
 #SBATCH --cpus-per-task=1
 #SBATCH --time=3:00:00
 #SBATCH --mem=5GB
-#SBATCH --output=/scratch/bw1879/quality-diversity-rl/logs/child1.out
+#SBATCH --output=/scratch/bw1879/quality-diversity-rl/logs/child-%A.out
 
 module purge
 module load jdk/11.0.4
@@ -14,4 +14,4 @@ source /scratch/bw1879-share/py3.7/bin/activate
 
 export PYTHONPATH=$(dirname `pwd`):$PYTHONPATH
 echo "pythonpath $PYTHONPATH"
-python child.py --unique_id 1 --gvgai_version GVGAI_BAM4D
+python child.py --unique_id %A --gvgai_version GVGAI_BAM4D

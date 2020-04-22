@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+SBATCH=$false
 while [ "$1" != "" ]; do
     PARAM=`echo $1 | awk -F= '{print $1}'`
     VALUE=`echo $1 | awk -F= '{print $2}'`
@@ -11,6 +12,9 @@ while [ "$1" != "" ]; do
         --agents)
             AGENTS=$VALUE
             ;;
+        --sbatch)
+            SBATCH=$true
+	    ;;
         *)
             echo "ERROR: unknown parameter \"$PARAM\""
             usage
@@ -20,10 +24,19 @@ while [ "$1" != "" ]; do
     shift
 done
 
-echo "agents is $AGENTS";
+echo "agents is $AGENTS sbatch is $SBATCH";
 
-for i in $(seq $AGENTS)
-do
-    echo "starting $i" &
-    nohup  bash start_child.sh $i &
-done
+if [[$SBATCH]] then
+    for i in $(seq $AGENTS)
+    do
+        echo "starting sbatch $i" &
+        sbatch run_child.sbatch &
+    done
+else
+    for i in $(seq $AGENTS)
+    do
+        echo "starting $i" &
+        nohup  bash start_child.sh $i &
+    done
+fi
+
