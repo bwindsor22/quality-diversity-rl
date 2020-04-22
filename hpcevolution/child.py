@@ -52,26 +52,29 @@ class Child:
         self.id = unique_id
         logging.basicConfig(filename='../logs/{}-child-{}.log'.format(self.run_name, self.id), level=logging.INFO)
         logging.getLogger().addHandler(logging.StreamHandler())
-        self.is_available = False
+        self.gvgai_version = gvgai_version
         self.env_maker = CachingEnvironmentMaker(version=gvgai_version)
         self.run_name = run_name
         policy_net, init_model = get_initial_model(gvgai_version, game)
         self.model = policy_net
         self.signal_available()
         self.tasks_processed = set()
+        self.reset_every = 250
 
     def run(self):
         while True:
             logging.info('processed so far %d', len(self.tasks_processed))
+            if len(self.tasks_processed) % self.reset_every == 0:
+                self.reset_environments()
             self.signal_unavailable()
             task_file = self.parse_received_task()
             if task_file:
                 task, file = task_file
                 logging.info('task found, starting task')
-                feature, fitness = self.run_task(task)
-                res = Result(task.run_name,task.model,feature,fitness)
-                logging.info('Writing result')
-                self.write_result(res)
+                result = self.run_task(task)
+                if result:
+                    logging.info('Writing result')
+                    self.write_result(result)
                 logging.info('removing task file')
                 file.unlink()
                 logging.info('exists {}'.format(str(file.exists())))
@@ -96,12 +99,28 @@ class Child:
 
     def run_task(self, task):
         #RUN evaluate model
-        success = self.model.load_state_dict(task.model)
+        try:
+            success = self.model.load_state_dict(task.model)
+        except Exception as e:
+            logging.info('ERROR loading model. Skipping task. Error: %s', str(e))
+            return
         if success:
-            fitness, feature = fitness_feature_fn(task.score_strategy, task.stop_after, task.game,
-                                                            self.run_name, self.model, self.env_maker)
-            return feature, fitness
-        
+            try:
+                fitness, feature = fitness_feature_fn(task.score_strategy, task.stop_after, task.game,
+                                                                self.run_name, self.model, self.env_maker)
+                result = Result(task.run_name, task.model, feature, fitness)
+                return result
+            except Exception as e:
+                logging.info('ERROR running task. Error: %s', str(e))
+                self.reset_environments()
+
+    def reset_environments(self):
+        del self.env_maker
+        logging.info('Resetting env maker')
+        time.sleep(1)
+        self.env_maker = CachingEnvironmentMaker(version=self.gvgai_version)
+        logging.info('...reset finished')
+
 
     def write_result(self, result):
         # MAP AND SCORE
