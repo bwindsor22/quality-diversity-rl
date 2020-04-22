@@ -5,8 +5,8 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=1
 #SBATCH --time=3:00:00
-#SBATCH --mem=1GB
-#SBATCH --output=/scratch/bw1879/quality-diversity-rl/parent.out
+#SBATCH --mem=5GB
+#SBATCH --output=/scratch/bw1879/quality-diversity-rl/qdrl-master%A.out
 
 module purge
 module load jdk/11.0.4
