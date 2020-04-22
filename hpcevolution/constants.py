@@ -8,4 +8,4 @@ RESULTS_DIR_PATHLIB = Path(__file__).parent / 'results'
 AVAILABLE_EXTENSION = '.available'
 MODEL_EXTENSION = '.model'
 
-SLEEP_TIME = 0.25
+SLEEP_TIME = 1

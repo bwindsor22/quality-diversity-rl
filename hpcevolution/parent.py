@@ -52,7 +52,7 @@ class Parent:
     def run(self):
         while self.evaluated_so_far < self.total_to_evaluate:
             children = self.get_available_children()
-            logging.info('{} available children, {} evals run'.format(len(children), self.evaluated_so_far)
+            logging.info('{} available children, {} evals run'.format(len(children), self.evaluated_so_far))
             for child_name in children:
                 logging.info('Generating work for child')
                 run_data = self.generate_run_data()

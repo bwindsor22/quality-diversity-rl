@@ -12,6 +12,7 @@ module purge
 module load jdk/11.0.4
 source /scratch/bw1879-share/py3.7/bin/activate
 
+echo "job id $SLURM_JOB_ID"
 export PYTHONPATH=$(dirname `pwd`):$PYTHONPATH
 echo "pythonpath $PYTHONPATH"
-python child.py --unique_id %A --gvgai_version GVGAI_BAM4D
+python child.py --unique_id $SLURM_JOB_ID --gvgai_version GVGAI_BAM4D

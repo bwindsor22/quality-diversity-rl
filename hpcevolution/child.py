@@ -10,7 +10,7 @@ import torch
 from evolution.initialization_utils import get_initial_model
 from evolution.run_single_host_mapelite_train import SCORE_ALL, SCORE_WINNING, SCORE_LOSING
 from hpcevolution.result import Result
-from models.caching_environment_maker import CachingEnvironmentMaker, GVGAI_RUBEN
+from models.caching_environment_maker import CachingEnvironmentMaker, GVGAI_RUBEN, GVGAI_BAM4D
 from models.dqn import DQN
 from models.evaluate_model import evaluate_net
 from hpcevolution.constants import SLEEP_TIME, AVAILABLE_AGENTS_DIR_PATHLIB, AVAILABLE_EXTENSION, RESULTS_DIR_PATHLIB, \
