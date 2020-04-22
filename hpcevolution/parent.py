@@ -31,6 +31,7 @@ class Parent:
         init_iter = 1
 
         self.evaluated_so_far = 0
+        self.count_loops = 0
         self.total_to_evaluate = num_iter
         self.map_elites = HPCMapElites(policy_net,
                   init_model,
@@ -51,6 +52,9 @@ class Parent:
     # pickle.dump(result, open('/Users/bradwindsor/ms_projects/qd-gen/gameQD/hpcevolution/results/1234.result', 'wb'))
     def run(self):
         while self.evaluated_so_far < self.total_to_evaluate:
+            if self.count_loops % 200 == 0:
+                logging.info('INTERMEDIATE PERFORMANCES')
+                logging.info(str(self.map_elites.performances))
             children = self.get_available_children()
             logging.info('{} available children, {} evals run'.format(len(children), self.evaluated_so_far))
             for child_name in children:
@@ -67,6 +71,11 @@ class Parent:
                 self.evaluated_so_far += 1
             logging.info('sleeping %d', SLEEP_TIME)
             time.sleep(SLEEP_TIME)
+            self.count_loops += 1
+
+        logging.info('Logging final results')
+        logging.info(str(self.map_elites.performances))
+
 
     def get_available_children(self):
         active = AVAILABLE_AGENTS_DIR_PATHLIB.glob('*' + AVAILABLE_EXTENSION)
@@ -77,8 +86,12 @@ class Parent:
         results_files = RESULTS_DIR_PATHLIB.glob('*.pkl')
         results = []
         for file in results_files:
-            logging.info('loaded result %s', file.stem)
-            results.append((pickle.load(file.open('rb')), file))
+            logging.info('loading result %s', file.stem)
+            try:
+                results.append((pickle.load(file.open('rb')), file))
+            except Exception as e:
+                logging.info('failed to load result %s', str(e))
+        logging.info('loaded')
         return results
 
     def update_map_elites_results(self, result: Result):
