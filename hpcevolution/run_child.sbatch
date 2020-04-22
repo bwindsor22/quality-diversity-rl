@@ -6,14 +6,12 @@
 #SBATCH --cpus-per-task=1
 #SBATCH --time=3:00:00
 #SBATCH --mem=5GB
-#SBATCH --output=/scratch/bw1879/quality-diversity-rl/logs/parent-qdrl-master%A.out
+#SBATCH --output=/scratch/bw1879/quality-diversity-rl/logs/child1.out
 
 module purge
 module load jdk/11.0.4
 source /scratch/bw1879-share/py3.7/bin/activate
-ssh prince
 
-#python hpcevolution/run_parent.py
 export PYTHONPATH=$(dirname `pwd`):$PYTHONPATH
 echo "pythonpath $PYTHONPATH"
-python run_parent.py --gvgai_version GVGAI_BAM4D
+python child.py --unique_id 1 --gvgai_version GVGAI_BAM4D
