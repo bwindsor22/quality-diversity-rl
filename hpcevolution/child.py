@@ -127,7 +127,7 @@ class Child:
 
 @click.command()
 @click.option('--unique_id', default='3', help='child id')
-@click.option('--gvgai_version', default=GVGAI_RUBEN, help='Which version of the gvgai library to run, GVGAI_BAM4D or GVGAI_RUBEN')
+@click.option('--gvgai_version', default=GVGAI_BAM4D, help='Which version of the gvgai library to run, GVGAI_BAM4D or GVGAI_RUBEN')
 @click.option('--run_name', default='1', help='TODO')
 @click.option('--game', default='gvgai-zelda', help='Which game to run')
 def run(unique_id, gvgai_version, run_name, game):
