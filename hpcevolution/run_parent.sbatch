@@ -15,4 +15,5 @@ source /scratch/bw1879-share/py3.7/bin/activate
 #python hpcevolution/run_parent.py
 export PYTHONPATH=$(dirname `pwd`):$PYTHONPATH
 echo "pythonpath $PYTHONPATH"
-python run_parent.py --gvgai_version GVGAI_BAM4D
+python run_parent.py --gvgai_version GVGAI_BAM4D --game gvgai-dzelda
+

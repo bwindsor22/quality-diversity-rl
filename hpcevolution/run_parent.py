@@ -8,7 +8,7 @@ from models.caching_environment_maker import GVGAI_RUBEN
 @click.command()
 @click.option('--num_iter', default=200000, help='Number of module iters over which to evaluate for each algorithm.')
 @click.option('--score_strategy', default=SCORE_ALL, help='Scoring strategy for algorithm')
-@click.option('--game', default='gvgai-zelda', help='Which game to run')
+@click.option('--game', default='gvgai-dzelda', help='Which game to run')
 @click.option('--stop_after', default=1000, help='Number of iterations after which to stop evaluating the agent')
 @click.option('--save_model', default=False, help='Whether to save the final model')
 @click.option('--gvgai_version', default=GVGAI_RUBEN, help='Which version of the gvgai library to run, GVGAI_BAM4D or GVGAI_RUBEN')

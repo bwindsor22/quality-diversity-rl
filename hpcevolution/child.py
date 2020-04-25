@@ -34,7 +34,7 @@ def fitness_feature_fn(score_strategy, stop_after, game, run_name, policy_net, e
     """
     scores = 0
     wins = []
-    for lvl in range(5):
+    for lvl in range(10):
         score, win = evaluate_net(policy_net,
                                   game_level=f'{game}-lvl{lvl}-v0',
                                   stop_after=stop_after,
@@ -148,7 +148,7 @@ class Child:
 @click.option('--unique_id', default='3', help='child id')
 @click.option('--gvgai_version', default=GVGAI_BAM4D, help='Which version of the gvgai library to run, GVGAI_BAM4D or GVGAI_RUBEN')
 @click.option('--run_name', default='1', help='TODO')
-@click.option('--game', default='gvgai-zelda', help='Which game to run')
+@click.option('--game', default='gvgai-dzelda', help='Which game to run')
 def run(unique_id, gvgai_version, run_name, game):
     Child(unique_id, gvgai_version, run_name, game).run()
 
