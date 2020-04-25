@@ -1,4 +1,4 @@
-import math
+1;95;0c1;95;0cimport math
 import random
 from itertools import count
 from datetime import datetime
@@ -74,6 +74,13 @@ def evaluate_net(policy_net,
 
     for t in count():
         action = select_action(state, policy_net, n_actions)
+
+        if (torch.isnan(action).any() or torch.isinf(action).any() or action == None):
+            sum_score += -1
+            logging.debug("Invalid Action Output By Model")
+            logging.debug("Score: {}, won: {}".format(sum_score.item(), won))
+            return sum_score,won
+
         obs, reward, done, info = env.step(action.item())
         reward = torch.tensor([reward], device=device)
 
