@@ -76,7 +76,7 @@ class Child:
                     logging.info('Writing result')
                     self.write_result(result)
                 logging.info('removing task file')
-                file.unlink()
+                file.unlink(missing_ok=True)
                 logging.info('exists {}'.format(str(file.exists())))
                 logging.info('finished task')
             self.signal_available()
