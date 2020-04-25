@@ -1,4 +1,4 @@
-1;95;0c1;95;0cimport math
+import math
 import random
 from itertools import count
 from datetime import datetime
