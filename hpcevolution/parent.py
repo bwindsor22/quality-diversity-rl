@@ -5,7 +5,7 @@ import pickle
 from pathlib import Path
 import logging
 
-from evolution.hpc_map_elites import HPCMapElites
+from evolution.hpc_dme import HPC_DME
 from evolution.initialization_utils import get_initial_model
 from hpcevolution.work import Work
 from hpcevolution.constants import SLEEP_TIME, AVAILABLE_AGENTS_DIR_PATHLIB, AVAILABLE_EXTENSION, RESULTS_DIR_PATHLIB, \
@@ -25,36 +25,34 @@ class Parent:
         self.score_strategy = score_strategy
         self.game = game
         self.stop_after = stop_after
-        # logging.basicConfig(filename=self.run_name + '.log', level=logging.INFO if log_level == 'INFO' else logging.DEBUG)
 
         policy_net, init_model = get_initial_model(gvgai_version, game)
-        init_iter = 1
+
+        init_iter = 5
+        crossover_possibility = 0.8
+        F = 0.8
 
         self.evaluated_so_far = 0
         self.count_loops = 0
         self.total_to_evaluate = num_iter
-        self.map_elites = HPCMapElites(policy_net,
+        
+        self.dme = HPC_DME(policy_net,
                   init_model,
                   init_iter,
                   num_iter,
-                  is_crossover,
-                  mutate_possibility,
+                  F,
                   crossover_possibility,
-                  is_mortality,
-                  max_age,
-                  is_mepgd,
-                  mepgd_possibility,
-                  gvgai_version=gvgai_version,
-                  is_cmame=cmame)
+                  evaluate = None,
+                  gvgai_version=gvgai_version)
 
     # import pickle
     # result = Result(run_data.model, '0-0-0-0-0', 10)
     # pickle.dump(result, open('/Users/bradwindsor/ms_projects/qd-gen/gameQD/hpcevolution/results/1234.result', 'wb'))
     def run(self):
         while self.evaluated_so_far < self.total_to_evaluate:
-            if self.count_loops % 200 == 0:
+            if self.count_loops % 50 == 0:
                 logging.info('INTERMEDIATE PERFORMANCES')
-                logging.info(str(self.map_elites.performances))
+                logging.info(str(self.dme.performances))
             children = self.get_available_children()
             logging.info('{} available children, {} evals run'.format(len(children), self.evaluated_so_far))
             for child_name in children:
@@ -74,7 +72,7 @@ class Parent:
             self.count_loops += 1
 
         logging.info('Logging final results')
-        logging.info(str(self.map_elites.performances))
+        logging.info(str(self.dme.performances))
 
 
     def get_available_children(self):
@@ -95,14 +93,13 @@ class Parent:
         return results
 
     def update_map_elites_results(self, result: Result):
-        self.map_elites.update_result(result.network, result.feature, result.fitness)
+        self.dme.update_result(result.network, result.feature, result.fitness)
 
     def generate_run_data(self):
-        model = self.map_elites.next_model()
+        model = self.dme.next_model()
         return Work(model, self.score_strategy, self.game, self.stop_after, self.run_name)
 
     def write_work_for_child(self, work, child_name):
         path = WORK_DIR_PATHLIB / str('task-id-{}-child-{}'.format(self.evaluated_so_far, child_name))
         path = path.with_suffix('.pkl')
-        # path.unlink(missing_ok=True)
         pickle.dump(work, path.open('wb'))

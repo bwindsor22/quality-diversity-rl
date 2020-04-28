@@ -4,10 +4,10 @@
 #SBATCH --cpus-per-task=1
 #SBATCH --time=3:00:00
 #SBATCH --mem=10GB
-#SBATCH --output=/scratch/bw1879/quality-diversity-rl/qdrl-worker%A_%a.out
+#SBATCH --output=/scratch/mw4355/quality-diversity-rl/qdrl-worker%A_%a.out
 
 module purge
 module load jdk/11.0.4
-source /scratch/bw1879-share/py3.7/bin/activate
+source /scratch/mw4355/py3.7/bin/activate
 
 python hpcevolution/child.py
