@@ -23,6 +23,7 @@ steps_done = 0
 
 device = find_device()
 
+win_factor = 100
 
 def select_action(state, policy_net, n_actions,
                   EPS_START=0.05,
@@ -85,7 +86,10 @@ def evaluate_net(policy_net,
         else:
             next_state = None
 
-        sum_score += reward
+        if info['winner'] == "PLAYER_WINS" or info['winner'] == 3:
+          sum_score += reward*win_factor
+        else:
+          sum_score += reward
         if t % 200 == 0:
             logging.debug('Time: {}, Reward: {}, Total Score: {}'.format(t, reward,  sum_score))
 

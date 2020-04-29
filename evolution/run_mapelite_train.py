@@ -50,6 +50,10 @@ def get_initial_policy_net(level='gvgai-zelda-lvl0-v0', LINEAR_INPUT_SCALAR=8,
     n_actions = env.action_space.n
 
     init_model = [screen_height, screen_width, LINEAR_INPUT_SCALAR, KERNEL, n_actions]
+    
+    #depending on pretrained or not
+    #policy_net = resnet18(pretrained=True)
+    #policy_net.fc = torch.nn.Linear(512,n_actions)
     policy_net = resnet18(pretrained=False, num_classes=n_actions).to(device)
     return policy_net,n_actions
 

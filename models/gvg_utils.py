@@ -2,12 +2,12 @@ import numpy as np
 import torch
 import torchvision.transforms as T
 
-#resize = T.Compose([T.ToPILImage(),
-                    #T.Resize(30),
-                    #T.ToTensor()])
-
-process = T.Compose([T.ToPILImage(),
+resize = T.Compose([T.ToPILImage(),
+                    T.Resize(224),
                     T.ToTensor()])
+
+#process = T.Compose([T.ToPILImage(),
+                    #T.ToTensor()])
 
 def get_screen(env, device):
     screen = env.render(mode='rgb_array').transpose((2, 0, 1))
@@ -17,4 +17,4 @@ def get_screen(env, device):
     # (this doesn't require a copy)
     screen = torch.from_numpy(screen)
     # Resize, and add a batch dimension (BCHW)
-    return process(screen).unsqueeze(0).to(device)
+    return resize(screen).unsqueeze(0).to(device)
