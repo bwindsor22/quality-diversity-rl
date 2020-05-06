@@ -7,6 +7,7 @@ import logging
 
 import torch
 import cma
+from datetime import datetime
 
 class CMAEmitters:
     def __init__(self, initial_state_dict):
@@ -33,16 +34,23 @@ class CMAEmitters:
             initial_vector = [0 for _ in range(self.num_params)]
             cmaes = cma.CMAEvolutionStrategy(initial_vector, self.default_sigma)
             self.emitters[feature_descriptor] = cmaes
+            self.emitters[feature_descriptor].ask(number=1)
+            logging.info('created new emitter, %s', feature_descriptor)
 
         self.data_queue[feature_descriptor].append(state_flattened)
+        logging.info('added to cmame queue, %d for %s',
+                     len(self.data_queue[feature_descriptor]), feature_descriptor)
+
         # cma is set to minimize, so we invert
         self.performances_queue[feature_descriptor].append(performance.item() * -1)
         if len(self.data_queue[feature_descriptor]) == self.pop_size:
             logging.info('TELLING FEATURES, lower is better')
-            logging.info(pformat(self.performances_queue[feature_descriptor]))
+            logging.info('feature: %s', feature_descriptor)
+            logging.info('to tell: %s', str(self.performances_queue[feature_descriptor]))
+            start = datetime.now()
             self.emitters[feature_descriptor].tell(self.data_queue[feature_descriptor],
                                                    self.performances_queue[feature_descriptor])
-            logging.info('told features')
+            logging.info('Told features in %s.', str(datetime.now() - start))
             self.data_queue[feature_descriptor].clear()
             self.performances_queue[feature_descriptor].clear()
             logging.info('cleared queue')
@@ -54,14 +62,16 @@ class CMAEmitters:
         """
         :return: a sample network for evaluation
         """
-        logging.info('ASK for next network')
-        model_type = random.choice(list(self.emitters.keys()))
+        logging.info('ASK for next network among %s', str(list(self.emitters.keys())))
+        feature_options = list(self.emitters.keys())
+        feature_descriptor = random.choice(feature_options)
+        logging.info('feature descriptor %s', feature_descriptor)
         # if model_type not in self.next_eval_queue or not self.next_eval_queue[model_type]:
         #     self.next_eval_queue[model_type] = self.emitters[model_type].ask()
         # flattened_state = self.next_eval_queue[model_type].pop(0)
-        flattened_state = self.emitters[model_type].ask(number=1)
+        flattened_state = self.emitters[feature_descriptor].ask(number=1)
         model = self._model_state(flattened_state[0].tolist())
-        logging.info('returning model of type %s', model_type)
+        logging.info('returning model of type %s', feature_descriptor)
         return model
 
     @staticmethod
