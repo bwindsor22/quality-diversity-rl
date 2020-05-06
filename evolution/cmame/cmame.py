@@ -18,7 +18,7 @@ class CMAEmitters:
         state_flattened = self._flatten_model_state(initial_state_dict)
         self.num_params = len(state_flattened)
         self.pop_size = self.pop_size(self.num_params)
-        print('Set up CMA for {} params, {} pop size'.format(self.num_params, self.pop_size))
+        logging.info('Set up CMA for {} params, {} pop size'.format(self.num_params, self.pop_size))
 
 
     def tell(self, feature_descriptor, model_state,  performance):
@@ -42,8 +42,10 @@ class CMAEmitters:
             logging.info(pformat(self.performances_queue[feature_descriptor]))
             self.emitters[feature_descriptor].tell(self.data_queue[feature_descriptor],
                                                    self.performances_queue[feature_descriptor])
+            logging.info('told features')
             self.data_queue[feature_descriptor].clear()
             self.performances_queue[feature_descriptor].clear()
+            logging.info('cleared queue')
         logging.debug('recorded perfs to be told')
         logging.debug(pformat(self.performances_queue))
 
