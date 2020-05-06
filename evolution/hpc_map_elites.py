@@ -6,11 +6,11 @@ from evolution.map_elites import MapElites
 class HPCMapElites(MapElites):
 
     def next_model(self):
-        if len(self.solutions) < self.num_initial_solutions:
+        if self.cmame:
+            model_state = self.emitters.ask()
+        elif len(self.solutions) < self.num_initial_solutions:
             self.model.__init__(*self.init_model)
             model_state = self.model.state_dict()
-        elif self.cmame:
-            model_state = self.emitters.ask()
         else:
             model_state = self.random_variation()
         return model_state

@@ -19,6 +19,8 @@ class CMAEmitters:
         state_flattened = self._flatten_model_state(initial_state_dict)
         self.num_params = len(state_flattened)
         self.pop_size = self.pop_size(self.num_params)
+        initial_vector = [0 for _ in range(self.num_params)]
+        self.initial_cmaes = cma.CMAEvolutionStrategy(initial_vector, self.default_sigma)
         logging.info('Set up CMA for {} params, {} pop size'.format(self.num_params, self.pop_size))
 
 
@@ -64,14 +66,17 @@ class CMAEmitters:
         """
         logging.info('ASK for next network among %s', str(list(self.emitters.keys())))
         feature_options = list(self.emitters.keys())
-        feature_descriptor = random.choice(feature_options)
-        logging.info('feature descriptor %s', feature_descriptor)
-        # if model_type not in self.next_eval_queue or not self.next_eval_queue[model_type]:
-        #     self.next_eval_queue[model_type] = self.emitters[model_type].ask()
-        # flattened_state = self.next_eval_queue[model_type].pop(0)
-        flattened_state = self.emitters[feature_descriptor].ask(number=1)
+        if not feature_options:
+            logging.info('No cmaes results yet. Using initial distribution')
+            flattened_state = self.initial_cmaes.ask(number=1)
+        else:
+            feature_descriptor = random.choice(feature_options)
+            logging.info('feature descriptor %s', feature_descriptor)
+            # if model_type not in self.next_eval_queue or not self.next_eval_queue[model_type]:
+            #     self.next_eval_queue[model_type] = self.emitters[model_type].ask()
+            # flattened_state = self.next_eval_queue[model_type].pop(0)
+            flattened_state = self.emitters[feature_descriptor].ask(number=1)
         model = self._model_state(flattened_state[0].tolist())
-        logging.info('returning model of type %s', feature_descriptor)
         return model
 
     @staticmethod
