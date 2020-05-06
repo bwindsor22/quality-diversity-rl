@@ -6,7 +6,7 @@ from models.caching_environment_maker import GVGAI_RUBEN
 
 
 @click.command()
-@click.option('--num_iter', default=200000, help='Number of module iters over which to evaluate for each algorithm.')
+@click.option('--num_iter', default=400000, help='Number of module iters over which to evaluate for each algorithm.')
 @click.option('--run_name', default='default_run_name', help='Directory name for run files')
 @click.option('--score_strategy', default=SCORE_ALL, help='Scoring strategy for algorithm')
 @click.option('--game', default='gvgai-zelda', help='Which game to run')
