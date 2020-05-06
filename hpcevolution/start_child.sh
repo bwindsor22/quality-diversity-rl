@@ -2,4 +2,4 @@
 source ././../qd-env/bin/activate
 export PYTHONPATH=$(dirname `pwd`):$PYTHONPATH
 echo "pythonpath $PYTHONPATH"
-python child.py --unique_id $1
+python child.py --unique_id $1 --gvgai_version GVGAI_RUBEN --game gvgai-zelda --run_name trial_run
