@@ -84,7 +84,7 @@ class MapElites(object):
         for l, x in states:
             if l[-6:] == "weight" or l[-4:] == "bias":
                 new_state[l] = torch.where(torch.rand_like(x) > self.mutate_poss,
-                                           torch.randn_like(x) * self.normal_dist_variance,
+                                           torch.randn_like(x) * self.normal_dist_variance + x,
                                            x)
             else:
                 new_state[l] = x

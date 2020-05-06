@@ -88,7 +88,7 @@ def evaluate_net(policy_net,
         last_screen = current_screen
         current_screen = get_screen(env, device)
         if not done:
-            next_state = current_screen - last_screen
+            next_state = current_screen
         else:
             next_state = None
 
