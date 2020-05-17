@@ -285,7 +285,7 @@ class CMAME_Optimizing(OOOptimizer):  # could also inherit from object
             return True
 
         area = self.sigma * (abs(max(self.C.eigenvalues)) ** 0.5)
-        logging.info('testing reset: area: %d', area)
+        logging.info('testing reset: area: %d', area * 1e11)
         if area < 1e-11:
             logging.info('Reset CMA-ES because of area')
             return True

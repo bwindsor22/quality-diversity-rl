@@ -21,7 +21,7 @@ class FeatureMap:
         if individual.feature not in self.elite_map:
             added = True
             individual.delta = individual.fitness + self.delta_offset
-            self.elite_map[individual.fitness] = individual
+            self.elite_map[individual.feature] = individual
         elif self.elite_map[individual.feature].fitness < individual.fitness:
             added = True
             individual.delta = individual.fitness - self.elite_map[individual.feature].fitness
