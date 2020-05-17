@@ -3,7 +3,7 @@ import random
 
 import torch
 
-from evolution.cmame.cmame import CMAEmitters
+from evolution.optimizing_emitter.caching_pop_updater import CachingPopUpdater
 
 
 class MapElites(object):
@@ -53,7 +53,7 @@ class MapElites(object):
         if self.cmame:
             self.model.__init__(*self.init_model)
             initial_state_dict = self.model.state_dict()
-            self.emitters = CMAEmitters(initial_state_dict)
+            self.emitters = CachingPopUpdater(initial_state_dict)
 
     def random_variation(self):
         logging.debug('doing random varation')

@@ -31,6 +31,7 @@ class Parent:
         self.evaluated_so_far = 0
         self.count_loops = 0
         self.total_to_evaluate = num_iter
+        self.cmame = cmame
 
         policy_net, init_model = get_initial_model(gvgai_version, game)
 
@@ -65,7 +66,7 @@ class Parent:
     # pickle.dump(result, open('/Users/bradwindsor/ms_projects/qd-gen/gameQD/hpcevolution/results/1234.result', 'wb'))
     def run(self):
         while self.evaluated_so_far < self.total_to_evaluate:
-            if self.count_loops % 200 == 0:
+            if not self.cmame and self.count_loops % 200 == 0:
                 logging.info('INTERMEDIATE PERFORMANCES')
                 logging.info(str(self.map_elites.performances))
             children = self.get_available_children()
