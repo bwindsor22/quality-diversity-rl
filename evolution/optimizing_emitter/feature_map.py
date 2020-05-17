@@ -25,7 +25,7 @@ class FeatureMap:
         elif self.elite_map[individual.feature].fitness < individual.fitness:
             added = True
             individual.delta = individual.fitness - self.elite_map[individual.feature].fitness
-            self.elite_map[individual.fitness] = individual
+            self.elite_map[individual.feature] = individual
         return added
 
     def add_individuals_to_map(self, individuals):
