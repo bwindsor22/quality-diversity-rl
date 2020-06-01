@@ -1,6 +1,6 @@
 from math import log
 from copy import deepcopy
-from evolution.optimizing_emitter.optimizing_emitter import CMAME_Optimizing
+from evolution.fast_optimizing_emitter.pycma.cma.evolution_strategy import CMAEvolutionStrategy
 from evolution.optimizing_emitter.individual import Individual
 import torch
 import logging
@@ -13,7 +13,7 @@ class CachingPopUpdater:
     3. Logs total counts
     """
 
-    def __init__(self, initial_state_dict):
+    def __init__(self, initial_state_dict, log_every=1000):
         self.initial_state_dict = initial_state_dict
 
         state_flattened = self._flatten_model_state(initial_state_dict)
@@ -23,25 +23,28 @@ class CachingPopUpdater:
         self.ask_cache = []
         self.tell_cache = []
 
-        self.optimizing_emitter = CMAME_Optimizing(state_flattened, 1)
+        self.optimizing_emitter = CMAEvolutionStrategy(state_flattened, 1)
 
         self.total_count_eval = 0
-        self.log_every = 1000
+        self.log_every = log_every
 
     def ask(self):
         logging.info('Asking for model')
         if not len(self.ask_cache):
+            logging.info('Reloading cache')
             self.ask_cache = self.optimizing_emitter.ask()
         flattened = self.ask_cache.pop(0)
-        model_state_dict = self._flattened_to_model_state(flattened)
+        logging.info('list params {}'.format(len(flattened.tolist())))
+        model_state_dict = self._flattened_to_model_state(flattened.tolist())
         logging.info('returning model')
         return model_state_dict
 
     def tell(self, feature, model_state_dict, fitness):
         self.total_count_eval += 1
+        fitness = fitness.item()
         if self.total_count_eval % self.log_every == 0:
             logging.info('LOGGING INTERMEDIATE RESULTS')
-            self.optimizing_emitter.feature_map.log()
+            self.optimizing_emitter.cmame_feature_map.log()
 
         flattened = self._flatten_model_state(model_state_dict)
         indiv = Individual(feature, flattened, fitness)

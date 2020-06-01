@@ -1,13 +1,13 @@
-import evolution.cmame.purecma as pcma
-import cma
+import evolution.reference_multi_cmame.purecma as pcma
+from evolution.fast_optimizing_emitter.pycma.cma import CMAEvolutionStrategy
 from pprint import pprint
 
-def to_minimize(x, y):
-    return pow(x - 1, 2) + pow(y - 1, 2)
+def to_minimize(x, y, z):
+    return pow(x - 1, 2) + pow(y - 1, 2) + pow(z - 3, 2)
 
 def pure_cma():
     initial = [10, 10]
-    es = pcma.CMAES([0, 0], 0.5)
+    es = pcma.CMAES([0, 0, 0], 0.5)
     num_iter = 50
 
     i = 0
@@ -15,11 +15,11 @@ def pure_cma():
         i += 1
         X = es.ask()
         pprint(X)
-        evals = [to_minimize(e[0], e[1]) for e in X]
+        evals = [to_minimize(e[0], e[1], e[2]) for e in X]
         es.tell(X, evals)
 
 def fast_cma():
-    es = cma.CMAEvolutionStrategy(2 * [10], 0.5)
+    es = CMAEvolutionStrategy(3 * [10], 0.5)
     num_iter = 50
     i = 0
     pop_size = len(es.ask())

@@ -14,7 +14,7 @@ class FeatureMap:
         return len(self.elite_map.keys())
 
     def get_random_elite(self):
-        return random.choice(self.elite_map.values())
+        return random.choice(list(self.elite_map.values()))
 
     def add_to_map(self, individual):
         added = False
