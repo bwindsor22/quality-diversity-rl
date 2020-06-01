@@ -2568,7 +2568,7 @@ class CMAEvolutionStrategy(interfaces.OOOptimizer):
         function_values = [ind.fitness for ind in individuals]
 
 
-        if self._flgtelldone:
+        if False and self._flgtelldone:
             raise RuntimeError('tell should only be called once per iteration')
 
         lam = len(solutions)
