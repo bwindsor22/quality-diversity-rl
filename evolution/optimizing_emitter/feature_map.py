@@ -5,7 +5,6 @@ from pprint import pformat
 class FeatureMap:
     def __init__(self):
         self.elite_map = {} # fitness -> individual
-        self.delta_offset = 10000 # ensures new individuals go to front of queue
 
     def log(self):
         logging.info(pformat(self.elite_map))
@@ -20,11 +19,9 @@ class FeatureMap:
         added = False
         if individual.feature not in self.elite_map:
             added = True
-            individual.delta = individual.fitness + self.delta_offset
             self.elite_map[individual.feature] = individual
-        elif self.elite_map[individual.feature].fitness < individual.fitness:
+        elif self.elite_map[individual.feature].fitness > individual.fitness:
             added = True
-            individual.delta = individual.fitness - self.elite_map[individual.feature].fitness
             self.elite_map[individual.feature] = individual
         return added
 

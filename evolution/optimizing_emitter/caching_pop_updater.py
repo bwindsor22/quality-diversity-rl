@@ -13,7 +13,7 @@ class CachingPopUpdater:
     3. Logs total counts
     """
 
-    def __init__(self, initial_state_dict, log_every=1000):
+    def __init__(self, initial_state_dict, log_every=500):
         self.initial_state_dict = initial_state_dict
 
         state_flattened = self._flatten_model_state(initial_state_dict)
@@ -41,9 +41,10 @@ class CachingPopUpdater:
 
     def tell(self, feature, model_state_dict, fitness):
         self.total_count_eval += 1
-        fitness = fitness.item()
+        fitness = fitness.item() if torch.is_tensor(fitness) else fitness
+        fitness *= -1 # to maximize fitness while using cma-es, which is set to minimize
         if self.total_count_eval % self.log_every == 0:
-            logging.info('LOGGING INTERMEDIATE RESULTS')
+            logging.info('LOGGING INTERMEDIATE RESULTS, lower is better')
             self.optimizing_emitter.cmame_feature_map.log()
 
         flattened = self._flatten_model_state(model_state_dict)
