@@ -2966,7 +2966,7 @@ class CMAEvolutionStrategy(interfaces.OOOptimizer):
         max_fit = max(function_values)
 
         logging.info('testing reset: max: %d, min: %d', max_fit, min_fit)
-        if max_fit - min_fit < 5:
+        if max_fit - min_fit <= 6:
             logging.info('Reset CMA-ES because of flatness')
             return True
 
@@ -2977,8 +2977,9 @@ class CMAEvolutionStrategy(interfaces.OOOptimizer):
             logging.info('Reset CMA-ES because of area')
             return True
 
-        if self.countevals > 1e14:
+        if self.countevals >= 70000:
             logging.info('Reset CMA-ES because of count eval')
+            self.countevals = 0
             return True
 
         logging.info('No reset needed')
