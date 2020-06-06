@@ -68,7 +68,7 @@ class Parent:
         while self.evaluated_so_far < self.total_to_evaluate:
             if not self.cmame and self.count_loops % 200 == 0:
                 logging.info('INTERMEDIATE PERFORMANCES')
-                logging.info(str(self.map_elites.performances))
+                logging.info(str(self.map_elites.get_performances()))
             children = self.get_available_children()
             logging.info('{} available children, {} evals run'.format(len(children), self.evaluated_so_far))
             for child_name in children:
@@ -88,7 +88,7 @@ class Parent:
             self.count_loops += 1
 
         logging.info('Logging final results')
-        logging.info(str(self.map_elites.performances))
+        logging.info(str(self.map_elites.get_performances()))
 
 
     def get_available_children(self):
