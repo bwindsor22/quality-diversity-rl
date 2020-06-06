@@ -120,7 +120,7 @@ def evaluate_net(policy_net,
     logging.debug('Completed one level eval')
 
     env.close()
-    return sum_score, won
+    return sum_score, won, t
 
 
 if __name__ == '__main__':

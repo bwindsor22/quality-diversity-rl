@@ -5,7 +5,7 @@ import pickle
 from pathlib import Path
 import logging
 
-from evolution.hpc_map_elites import HPCMapElites
+from evolution.explorer_follower_map_elites import ExplorerFollowerMapElites
 from evolution.initialization_utils import get_initial_model
 from hpcevolution.work import Work
 from hpcevolution.constants import SLEEP_TIME, AVAILABLE_EXTENSION
@@ -24,7 +24,7 @@ class Parent:
         self.scoring_strategy = score_strategy
         self.score_strategy = score_strategy
         self.game = game
-        self.stop_after = stop_after
+        self.stop_after = None # not used
 
         init_iter = 1
 
@@ -47,7 +47,7 @@ class Parent:
         self.RESULTS_DIR.mkdir(exist_ok=True, parents=True)
 
         # ready to go
-        self.map_elites = HPCMapElites(policy_net,
+        self.map_elites = ExplorerFollowerMapElites(policy_net,
                   init_model,
                   init_iter,
                   num_iter,
@@ -68,7 +68,7 @@ class Parent:
         while self.evaluated_so_far < self.total_to_evaluate:
             if not self.cmame and self.count_loops % 200 == 0:
                 logging.info('INTERMEDIATE PERFORMANCES')
-                logging.info(str(self.map_elites.get_performances()))
+                self.map_elites.log()
             children = self.get_available_children()
             logging.info('{} available children, {} evals run'.format(len(children), self.evaluated_so_far))
             for child_name in children:
@@ -88,8 +88,7 @@ class Parent:
             self.count_loops += 1
 
         logging.info('Logging final results')
-        logging.info(str(self.map_elites.get_performances()))
-
+        self.map_elites.log()
 
     def get_available_children(self):
         active = self.AVAILABLE_AGENTS_DIR.glob('*' + AVAILABLE_EXTENSION)
@@ -109,11 +108,11 @@ class Parent:
         return results
 
     def update_map_elites_results(self, result: Result):
-        self.map_elites.update_result(result.network, result.feature, result.fitness)
+        self.map_elites.update_result(result.network, result.feature, result.fitness, result.eval_steps)
 
     def generate_run_data(self):
-        model = self.map_elites.next_model()
-        return Work(model, self.score_strategy, self.game, self.stop_after, self.run_name_with_params)
+        model, stop_after = self.map_elites.next_model_and_hyperparams()
+        return Work(model, self.score_strategy, self.game, stop_after, self.run_name_with_params)
 
     def write_work_for_child(self, work, child_name):
         path = self.WORK_DIR / str('task-id-{}-child-{}'.format(self.evaluated_so_far, child_name))

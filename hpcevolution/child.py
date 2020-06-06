@@ -29,20 +29,22 @@ def fitness_feature_fn(score_strategy, stop_after, game, run_name, policy_net, e
     Calculate fitess and feature descriptor simultaneously
     """
     scores = 0
+    total_steps = 0
     wins = []
     num_levels = 10 if game == 'gvgai-dzelda' else 5
     for lvl in range(num_levels):
         logging.debug('Running %s', f'{game}-lvl{lvl}-v0')
-        score, win = evaluate_net(policy_net,
+        score, win, steps = evaluate_net(policy_net,
                                   game_level=f'{game}-lvl{lvl}-v0',
                                   stop_after=stop_after,
                                   env_maker=env_maker)
         scores = combine_scores(scores, score, win, score_strategy)
+        total_steps += steps
         wins.append(win)
 
     fitness = scores
     feature_descriptor = '-'.join([str(i) for i in wins])
-    return fitness, feature_descriptor
+    return fitness, feature_descriptor, total_steps
 
 class Child:
     def __init__(self, unique_id, gvgai_version, run_name, game):
@@ -117,9 +119,9 @@ class Child:
             return
         if success:
             try:
-                fitness, feature = fitness_feature_fn(task.score_strategy, task.stop_after, task.game,
+                fitness, feature, eval_steps = fitness_feature_fn(task.score_strategy, task.stop_after, task.game,
                                                                 self.run_name, self.model, self.env_maker)
-                result = Result(task.run_name, task.model, feature, fitness)
+                result = Result(task.run_name, task.model, feature, fitness, eval_steps)
                 return result
             except Exception as e:
                 logging.info('ERROR running task. Error: %s', str(e))
