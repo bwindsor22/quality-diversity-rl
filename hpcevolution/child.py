@@ -30,17 +30,21 @@ def fitness_feature_fn(score_strategy, stop_after, game, run_name, policy_net, e
     """
     scores = 0
     wins = []
+    keys_found = 0
     num_levels = 10 if game == 'gvgai-dzelda' else 5
     for lvl in range(num_levels):
         logging.debug('Running %s', f'{game}-lvl{lvl}-v0')
-        score, win = evaluate_net(policy_net,
+        score, win,key_found = evaluate_net(policy_net,
                                   game_level=f'{game}-lvl{lvl}-v0',
                                   stop_after=stop_after,
                                   env_maker=env_maker)
         scores = combine_scores(scores, score, win, score_strategy)
+        #scores.append(score)
+        keys_found += key_found
         wins.append(win)
+        wins.append(key_found)
 
-    fitness = scores
+    fitness = [scores,keys_found]
     feature_descriptor = '-'.join([str(i) for i in wins])
     return fitness, feature_descriptor
 
@@ -138,6 +142,7 @@ class Child:
         path = self.RESULTS_DIR / self.id
         path = path.with_suffix('.pkl')
         pickle.dump(result, path.open('wb'))
+        logging.info('result written')
         return
 
     def signal_available(self):

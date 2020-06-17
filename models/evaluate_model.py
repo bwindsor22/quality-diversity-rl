@@ -68,9 +68,10 @@ def evaluate_net(policy_net,
 
     last_screen = get_screen(env, device)
     current_screen = get_screen(env, device)
-    state = current_screen - last_screen
+    state = current_screen
     sum_score = 0
     won = 0
+    key_found = 0
 
     for t in count():
         action = select_action(state, policy_net, n_actions)
@@ -82,6 +83,8 @@ def evaluate_net(policy_net,
             return sum_score,won
 
         obs, reward, done, info = env.step(action.item())
+        if reward==1:
+            key_found = 1
         reward = torch.tensor([reward], device=device)
 
         # Observe new state
@@ -120,7 +123,7 @@ def evaluate_net(policy_net,
     logging.debug('Completed one level eval')
 
     env.close()
-    return sum_score, won
+    return sum_score, won, key_found
 
 
 if __name__ == '__main__':

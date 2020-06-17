@@ -34,6 +34,7 @@ class MapElites(object):
         self.mepgd_poss = mepgd_possibility
         self.ages = {}
         self.max_age = max_age
+        self.population = []
         self.model = model
         self.init_model = init_model
         self.num_initial_solutions = init_iter
@@ -46,7 +47,8 @@ class MapElites(object):
         self.feature_descriptor = feature_descriptor
         self.fitness_feature = fitness_feature
         self.gvgai_version = gvgai_version
-        self.normal_dist_variance = 0.03
+        self.normal_dist_variance = 0.1
+        
         self.log_counts = 1000  # number of times to log intermediate results
 
         self.cmame = is_cmame
@@ -58,23 +60,10 @@ class MapElites(object):
     def random_variation(self):
         logging.debug('doing random varation')
         if self.is_crossover and len(self.solutions) >= 2:
-            if self.is_mepgd == False:
-                ind = random.sample(list(self.solutions.items()), 2)
-                ind = self.crossover(ind[0][1], ind[1][1])
-            elif len(self.secondary_solutions) > 0:
-                ind = []
-                ind.append(random.choice([random.choice(list(self.solutions.items())),
-                                          random.choice(list(self.secondary_solutions.items()))]))
-
-                ind.append(random.choice([random.choice(list(self.solutions.items())),
-                                          random.choice(list(self.secondary_solutions.items()))]))
-
-
-        elif len(self.secondary_solutions) > 0 and self.is_mepgd == True:
-            ind = random.choice([random.choice(list(self.solutions.values())),
-                                 random.choice(list(self.secondary_solutions.values()))])
+            ind = random.sample(list(self.solutions.items()), 2)
+            ind = self.crossover(ind[0][1], ind[1][1])
         else:
-            ind = random.choice(list(self.solutions.values()))
+            ind = random.choice(self.population)[0]
         return self.mutation(ind)
 
     def mutation(self, state):
