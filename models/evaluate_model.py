@@ -17,8 +17,14 @@ from models.dqn import DQN
 from models.gvg_utils import get_screen
 from environment_utils.utils import get_run_file_name, find_device
 import logging
+import pickle
+from pathlib import Path
 
 steps_done = 0
+
+SAVE_DIR = Path(__file__).parent.parent / 'saves'
+if not SAVE_DIR.exists():
+    SAVE_DIR.mkdir(exist_ok=True, parents=True)
 
 device = find_device()
 
@@ -66,11 +72,12 @@ def evaluate_net(policy_net,
 
     n_actions = env.action_space.n
 
-    last_screen = get_screen(env, device)
     current_screen = get_screen(env, device)
-    state = current_screen - last_screen
+    state = current_screen
     sum_score = 0
     won = 0
+
+    history = list()
 
     for t in count():
         action = select_action(state, policy_net, n_actions)
@@ -81,18 +88,21 @@ def evaluate_net(policy_net,
             logging.debug("Score: {}, won: {}".format(sum_score.item(), won))
             return sum_score,won
 
-        obs, reward, done, info = env.step(action.item())
-        reward = torch.tensor([reward], device=device)
+        obs, reward_raw, done, info = env.step(action.item())
+        reward = torch.tensor([reward_raw], device=device)
+        is_winner = info['winner'] == "PLAYER_WINS" or info['winner'] == 3
+        is_loser = info['winner'] == "PLAYER_LOSES" or info['winner'] == 2
+
+        history.append(history_dict(current_screen, action, reward_raw, info, is_winner, is_loser))
 
         # Observe new state
-        last_screen = current_screen
         current_screen = get_screen(env, device)
         if not done:
             next_state = current_screen
         else:
             next_state = None
 
-        if info['winner'] == "PLAYER_WINS" or info['winner'] == 3:
+        if is_winner:
           sum_score += reward*win_factor
         else:
           sum_score += reward
@@ -103,11 +113,11 @@ def evaluate_net(policy_net,
         # Move to the next state
         state = next_state
         if done or (stop_after and t >= int(stop_after)):
-            if info['winner'] == "PLAYER_WINS" or info['winner'] == 3:
+            if is_winner:
                 won = 1
                 logging.debug('WIN')
                 logging.debug("Score: {}, won: {}".format(sum_score.item(), won))
-            elif info['winner'] == "PLAYER_LOSES" or info['winner'] == 2:
+            elif is_loser:
                 won = 0
                 logging.debug('LOSE')
                 logging.debug("Score: {}, won: {}".format(sum_score.item(), won))
@@ -118,10 +128,26 @@ def evaluate_net(policy_net,
             break
 
     logging.debug('Completed one level eval')
+    history.append(history_dict(current_screen, torch.tensor([-1]), -1, {}, False, False))
 
     env.close()
+
+    file_name = SAVE_DIR / f'level_{game_level}_steps_{t}_won_{won}.pkl'
+
+    pickle.dump(history, open(str(file_name), 'wb'))
+
     return sum_score, won, t
 
+def history_dict(current_screen, action, reward_raw, info, is_winner, is_loser):
+    if 'actions' in info:
+        del info['actions']
+    return {
+        'current_screen': current_screen.numpy(),
+        'action': action.item(),
+        'reward': reward_raw,
+        'info': info,
+        'critical': 'winner' if is_winner else 'loser' if is_loser else 'no'
+    }
 
 if __name__ == '__main__':
     """

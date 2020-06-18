@@ -60,8 +60,8 @@ class ExplorerFollowerMapElites(object):
         self.log_counts = 1000  # number of times to log intermediate results
 
         self.state = EXPLORE_STATE
-        self.explore_headway = 50000
-        self.explore_stop_after = 100000
+        self.explore_headway = 2000
+        self.explore_stop_after = 60000
         self.follow_stop_after = 20000
         self.allow_score_to_drop = 0
 
@@ -155,17 +155,13 @@ class ExplorerFollowerMapElites(object):
         # if self.cmame:
         #     self.emitters.tell(feature, network, fitness)
         # el
-        improved_fitness_in_cell = False
         if feature not in self.explorer_performances or self.explorer_performances[feature] < fitness:
             logging.info('Found better explorer performance for feature: {}, new score: {}'.format(feature, fitness))
             self.explorer_performances[feature] = fitness
             self.explorer_solutions[feature] = network
-            improved_fitness_in_cell = True
 
-        if feature not in self.follower_performances or improved_fitness_in_cell or\
-            (self.follower_performances[feature] - fitness <= self.allow_score_to_drop and
-             self.follower_timesteps[feature] > eval_steps):
-            log_str = f'Found better follower performance for feature: {feature},'
+        if feature not in self.follower_performances or self.follower_timesteps[feature] > eval_steps:
+            log_str = f'Found better follower runtime for feature: {feature},'
             if feature in self.follower_performances:
                 log_str += f' old score: {self.follower_performances[feature]},'
                 f' old timestep: {self.follower_timesteps[feature]},'
