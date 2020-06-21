@@ -83,7 +83,7 @@ def evaluate_net(policy_net,
             return sum_score,won
 
         obs, reward, done, info = env.step(action.item())
-        if reward==1:
+        if reward==1 and done==False:
             key_found = 1
         reward = torch.tensor([reward], device=device)
 
