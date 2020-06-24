@@ -30,7 +30,7 @@ if not SAVE_DIR.exists():
 device = find_device()
 
 win_factor = 100
-save_every = 30000
+save_every = 10000
 
 def select_action(state, policy_net, n_actions,
                   EPS_START=0.05,
