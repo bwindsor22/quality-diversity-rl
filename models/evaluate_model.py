@@ -112,7 +112,7 @@ def evaluate_net(policy_net,
           sum_score += reward
         if t % 1000 == 0:
             logging.info('Time: {}, Reward: {}, Total Score: {}'.format(t, reward,  sum_score))
-        if t % save_every == 0:
+        if t % save_every == 0 and t > 0:
             file_name = SAVE_DIR / f'{run_id}_level_{game_level}_steps_{t}_save_{save_num}_won_{won}.pkl'
             logging.info('Dumping %d results in save # %d..', len(history), save_num)
             pickle.dump(history, open(str(file_name), 'wb'))
