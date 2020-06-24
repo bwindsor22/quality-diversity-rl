@@ -139,6 +139,9 @@ def evaluate_net(policy_net,
 
     logging.info('Completed one level eval')
     history.append(history_dict(current_screen, torch.tensor([-1]), -1, {}, False, False))
+    file_name = SAVE_DIR / f'{run_id}_level_{game_level}_steps_{t}_save_{save_num}_won_{won}.pkl'
+    logging.info('Saving final %d results in save # %d..', len(history), save_num)
+    pickle.dump(history, open(str(file_name), 'wb'))
 
     env.close()
 
