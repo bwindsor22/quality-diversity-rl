@@ -73,13 +73,12 @@ def evaluate_net(policy_net,
 
     n_actions = env.action_space.n
 
-    current_screen = get_screen(env, device)
-    state = current_screen
+    state = get_screen(env, device)
     sum_score = 0
     won = 0
 
     history = []
-
+    prev_state = state
     for t in count():
         action = select_action(state, policy_net, n_actions)
 
@@ -94,9 +93,9 @@ def evaluate_net(policy_net,
         is_winner = info['winner'] == "PLAYER_WINS" or info['winner'] == 3
         is_loser = info['winner'] == "PLAYER_LOSES" or info['winner'] == 2
 
-        is_sample = random.random() * 40000 <= 1
+        is_sample = random.random() * 25000 <= 1
         if is_winner or is_loser or reward_raw > 0 or is_sample:
-            history.append(history_dict(current_screen, action, reward_raw, info, is_winner, is_loser, is_sample))
+            history.append(history_dict(state, action, reward_raw, info, is_winner, is_loser, is_sample))
 
         # numpy_save(SAVE_DIR, game_level, state, action, t, reward_raw, is_winner, is_loser)
 
@@ -108,6 +107,7 @@ def evaluate_net(policy_net,
             logging.info('Time: {}, Reward: {}, Total Score: {}'.format(t, reward,  sum_score))
 
         # Observe new state
+        prev_state = state
         state = get_screen(env, device)
 
         # Move to the next state
@@ -126,7 +126,7 @@ def evaluate_net(policy_net,
                 logging.debug('Eval net stopped at {} steps'.format(t))
             break
 
-    if len(history) >= 3:
+    if len(history) >= 5:
         logging.info('saving %d critical points history', len(history))
         file_name = SAVE_DIR / f'{run_id}_{game_level}_step_{t}_win_{won}.pkl'
         pickle.dump(history, open(file_name, 'wb'))
