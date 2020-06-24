@@ -78,10 +78,8 @@ def evaluate_net(policy_net,
     state = current_screen
     sum_score = 0
     won = 0
-    save_num = 0
     run_id = str(uuid.uuid4())
 
-    history = list()
 
     for t in count():
         action = select_action(state, policy_net, n_actions)
@@ -97,14 +95,7 @@ def evaluate_net(policy_net,
         is_winner = info['winner'] == "PLAYER_WINS" or info['winner'] == 3
         is_loser = info['winner'] == "PLAYER_LOSES" or info['winner'] == 2
 
-        history.append(history_dict(current_screen, action, reward_raw, info, is_winner, is_loser))
-
-        # Observe new state
-        current_screen = get_screen(env, device)
-        if not done:
-            next_state = current_screen
-        else:
-            next_state = None
+        numpy_save(SAVE_DIR, run_id, game_level, state, action, t, reward_raw, is_winner, is_loser)
 
         if is_winner:
           sum_score += reward*win_factor
@@ -112,16 +103,11 @@ def evaluate_net(policy_net,
           sum_score += reward
         if t % 1000 == 0:
             logging.info('Time: {}, Reward: {}, Total Score: {}'.format(t, reward,  sum_score))
-        if t % save_every == 0 and t > 0:
-            file_name = SAVE_DIR / f'{run_id}_level_{game_level}_steps_{t}_save_{save_num}_won_{won}.pkl'
-            logging.info('Dumping %d results in save # %d..', len(history), save_num)
-            pickle.dump(history, open(str(file_name), 'wb'))
-            save_num += 1
-            history = []
-            logging.info('Saved files, reset history')
+
+        # Observe new state
+        state = get_screen(env, device)
 
         # Move to the next state
-        state = next_state
         if done or (stop_after and t >= int(stop_after)):
             if is_winner:
                 won = 1
@@ -138,14 +124,18 @@ def evaluate_net(policy_net,
             break
 
     logging.info('Completed one level eval')
-    history.append(history_dict(current_screen, torch.tensor([-1]), -1, {}, False, False))
-    file_name = SAVE_DIR / f'{run_id}_level_{game_level}_steps_{t}_save_{save_num}_won_{won}.pkl'
-    logging.info('Saving final %d results in save # %d..', len(history), save_num)
-    pickle.dump(history, open(str(file_name), 'wb'))
-
+    numpy_save(SAVE_DIR, run_id, game_level, current_screen, action, t, reward_raw, is_winner, is_loser)
     env.close()
 
     return sum_score, won, t
+
+def numpy_save(SAVE_DIR, run_id, game_level, current_screen, action, t, reward_raw, is_winner, is_loser):
+    screen_numpy = current_screen.numpy()
+    action_val = action.item()
+    win_val = 'win' if is_winner else 'lose' if is_loser else '__'
+    file_name = SAVE_DIR / f'{run_id}_{game_level}_step_{t}_act_{action_val}_reward_{reward_raw}_win_{win_val}.npy'
+    with open(str(file_name), 'wb') as f:
+        np.save(f, screen_numpy)
 
 def history_dict(current_screen, action, reward_raw, info, is_winner, is_loser):
     if 'actions' in info:
