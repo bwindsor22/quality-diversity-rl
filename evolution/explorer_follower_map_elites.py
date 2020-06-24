@@ -61,7 +61,7 @@ class ExplorerFollowerMapElites(object):
 
         self.state = EXPLORE_STATE
         self.explore_headway = 2000
-        self.explore_stop_after = 35000
+        self.explore_stop_after = 60000
         self.follow_stop_after = 15000
         self.allow_score_to_drop = 0
 
