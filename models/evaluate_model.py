@@ -130,12 +130,13 @@ def evaluate_net(policy_net,
     return sum_score, won, t
 
 def numpy_save(SAVE_DIR, run_id, game_level, current_screen, action, t, reward_raw, is_winner, is_loser):
-    screen_numpy = current_screen.numpy()
-    action_val = action.item()
-    win_val = 'win' if is_winner else 'lose' if is_loser else '__'
-    file_name = SAVE_DIR / f'{run_id}_{game_level}_step_{t}_act_{action_val}_reward_{reward_raw}_win_{win_val}.npy'
-    with open(str(file_name), 'wb') as f:
-        np.save(f, screen_numpy)
+    if is_winner or is_loser or reward_raw > 0:
+        screen_numpy = current_screen.numpy()
+        action_val = action.item()
+        win_val = 'win' if is_winner else 'lose' if is_loser else '__'
+        file_name = SAVE_DIR / f'{run_id}_{game_level}_step_{t}_act_{action_val}_reward_{reward_raw}_win_{win_val}.npy'
+        with open(str(file_name), 'wb') as f:
+            np.save(f, screen_numpy)
 
 def history_dict(current_screen, action, reward_raw, info, is_winner, is_loser):
     if 'actions' in info:
