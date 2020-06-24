@@ -136,7 +136,7 @@ def evaluate_net(policy_net,
     run_id = str(uuid.uuid4())
     file_name = SAVE_DIR / f'{run_id}_level_{game_level}_steps_{t}_won_{won}.pkl'
 
-    logging.info('Dumping results..')
+    logging.info('Dumping %d results..', len(history))
     pickle.dump(history, open(str(file_name), 'wb'))
     logging.info('Saved files')
 
