@@ -96,6 +96,7 @@ class Parent:
         return active_agent_ids
 
     def collect_written_results(self):
+        logging.info('looking in dir %s', str(self.RESULTS_DIR))
         results_files = self.RESULTS_DIR.glob('*.pkl')
         results = []
         for file in results_files:

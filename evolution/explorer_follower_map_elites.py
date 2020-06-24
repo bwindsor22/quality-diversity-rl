@@ -124,9 +124,9 @@ class ExplorerFollowerMapElites(object):
             else:
                 model_state = self.random_variation(self.explorer_solutions)
         else: # follow state
-            follow_count = len(self.follower_solutions.keys())
-            sampled_from_explore = follow_count == 0 or (random.random() >= 0.5)
-            sample_map = self.explorer_solutions if sampled_from_explore else self.follower_solutions
+            follow_count = len(self.follower_solutions.values())
+            sample_from_explore = follow_count == 0
+            sample_map = self.explorer_solutions if sample_from_explore else self.follower_solutions
             model_state = self.random_variation(sample_map)
 
         stop_after = self.explore_stop_after if self.state == EXPLORE_STATE else self.follow_stop_after

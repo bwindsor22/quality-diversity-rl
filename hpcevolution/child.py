@@ -33,7 +33,7 @@ def fitness_feature_fn(score_strategy, stop_after, game, run_name, policy_net, e
     wins = []
     num_levels = 10 if game == 'gvgai-dzelda' else 5
     for lvl in range(num_levels):
-        logging.debug('Running %s', f'{game}-lvl{lvl}-v0')
+        logging.info('Running %s', f'{game}-lvl{lvl}-v0')
         score, win, steps = evaluate_net(policy_net,
                                   game_level=f'{game}-lvl{lvl}-v0',
                                   stop_after=stop_after,
@@ -119,9 +119,11 @@ class Child:
             return
         if success:
             try:
+                logging.info('running task %s', task.game)
                 fitness, feature, eval_steps = fitness_feature_fn(task.score_strategy, task.stop_after, task.game,
                                                                 self.run_name, self.model, self.env_maker)
                 result = Result(task.run_name, task.model, feature, fitness, eval_steps)
+                logging.info('...finished running task')
                 return result
             except Exception as e:
                 logging.info('ERROR running task. Error: %s', str(e))
@@ -139,6 +141,7 @@ class Child:
         # MAP AND SCORE
         path = self.RESULTS_DIR / self.id
         path = path.with_suffix('.pkl')
+        logging.info('writing to dir %s', str(path))
         pickle.dump(result, path.open('wb'))
         return
 

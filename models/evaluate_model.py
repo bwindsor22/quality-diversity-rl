@@ -2,6 +2,7 @@ import math
 import random
 from itertools import count
 from datetime import datetime
+import uuid
 
 import gym
 import matplotlib
@@ -55,7 +56,7 @@ def evaluate_net(policy_net,
                  stop_after=None,
                  ):
 
-    logging.debug('making level %s', game_level)
+    logging.info('making level %s', game_level)
 
     if env_maker:
         env = env_maker(game_level)
@@ -106,8 +107,8 @@ def evaluate_net(policy_net,
           sum_score += reward*win_factor
         else:
           sum_score += reward
-        if t % 200 == 0:
-            logging.debug('Time: {}, Reward: {}, Total Score: {}'.format(t, reward,  sum_score))
+        if t % 1000 == 0:
+            logging.info('Time: {}, Reward: {}, Total Score: {}'.format(t, reward,  sum_score))
 
 
         # Move to the next state
@@ -127,14 +128,17 @@ def evaluate_net(policy_net,
                 logging.debug('Eval net stopped at {} steps'.format(t))
             break
 
-    logging.debug('Completed one level eval')
+    logging.info('Completed one level eval')
     history.append(history_dict(current_screen, torch.tensor([-1]), -1, {}, False, False))
 
     env.close()
 
-    file_name = SAVE_DIR / f'level_{game_level}_steps_{t}_won_{won}.pkl'
+    run_id = str(uuid.uuid4())
+    file_name = SAVE_DIR / f'{run_id}_level_{game_level}_steps_{t}_won_{won}.pkl'
 
+    logging.info('Dumping results..')
     pickle.dump(history, open(str(file_name), 'wb'))
+    logging.info('Saved files')
 
     return sum_score, won, t
 
