@@ -30,6 +30,7 @@ if not SAVE_DIR.exists():
 device = find_device()
 
 win_factor = 100
+save_every = 30000
 
 def select_action(state, policy_net, n_actions,
                   EPS_START=0.05,
@@ -77,6 +78,8 @@ def evaluate_net(policy_net,
     state = current_screen
     sum_score = 0
     won = 0
+    save_num = 0
+    run_id = str(uuid.uuid4())
 
     history = list()
 
@@ -109,7 +112,13 @@ def evaluate_net(policy_net,
           sum_score += reward
         if t % 1000 == 0:
             logging.info('Time: {}, Reward: {}, Total Score: {}'.format(t, reward,  sum_score))
-
+        if t % save_every == 0:
+            file_name = SAVE_DIR / f'{run_id}_level_{game_level}_steps_{t}_save_{save_num}_won_{won}.pkl'
+            logging.info('Dumping %d results in save # %d..', len(history), save_num)
+            pickle.dump(history, open(str(file_name), 'wb'))
+            save_num += 1
+            history = []
+            logging.info('Saved files, reset history')
 
         # Move to the next state
         state = next_state
@@ -132,13 +141,6 @@ def evaluate_net(policy_net,
     history.append(history_dict(current_screen, torch.tensor([-1]), -1, {}, False, False))
 
     env.close()
-
-    run_id = str(uuid.uuid4())
-    file_name = SAVE_DIR / f'{run_id}_level_{game_level}_steps_{t}_won_{won}.pkl'
-
-    logging.info('Dumping %d results..', len(history))
-    pickle.dump(history, open(str(file_name), 'wb'))
-    logging.info('Saved files')
 
     return sum_score, won, t
 
