@@ -26,7 +26,7 @@ class HPCMapElites(MapElites):
         
         if has_one_better_objective == True and is_not_less_than == True:
             return True
-        else
+        else:
             return False
         
     
