@@ -47,6 +47,7 @@ def fitness_feature_fn(score_strategy, stop_after, game, run_name, policy_net, e
         wins.append(key_found)
 
     #fitness = [scores,keys_found]
+    fitness = scores
     feature_descriptor = '-'.join([str(i) for i in wins])
     return fitness, feature_descriptor
 
