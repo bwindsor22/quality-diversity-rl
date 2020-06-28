@@ -28,7 +28,7 @@ def fitness_feature_fn(score_strategy, stop_after, game, run_name, policy_net, e
     """
     Calculate fitess and feature descriptor simultaneously
     """
-    scores = 0
+    scores = []
     wins = []
     keys_found = 0
     #num_levels = 10 if game == 'gvgai-dzelda' else 5
