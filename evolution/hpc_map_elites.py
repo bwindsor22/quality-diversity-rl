@@ -14,7 +14,22 @@ class HPCMapElites(MapElites):
         else:
             model_state = self.random_variation()
         return model_state
-
+    
+    def is_dominant(a,b):
+        is_not_less_than = True
+        has_one_better_objective = False
+        for j in range(len(a[1])):
+            if a[1][j] < b[1][j]:
+                is_not_less_than = False
+            if a[1][j] > b[1][j]:
+                has_one_better_objective = True
+        
+        if has_one_better_objective == True and is_not_less_than == True:
+            return True
+        else
+            return False
+        
+    
     def non_dominated_sort(self):
         unsorted_population = self.population
         fronts = []
@@ -29,10 +44,10 @@ class HPCMapElites(MapElites):
                 for q in unsorted_population:
                     #if p != q:
                     if p is not q:
-                        if (p[1][0] >= q[1][0] and p[1][1] >= q[1][1]) and (p[1][0] > q[1][0] or p[1][1] > q[1][1]):
+                        if is_dominant(p,q) == True:
                             dominated_count += 1
                             dominated_set.append(q)
-                        elif (q[1][0] >= p[1][0] and q[1][1] >= p[1][1]) and (q[1][0] > p[1][0] or q[1][1] > p[1][1]):
+                        elif is_dominant(q,p):
                             dominated_by_count +=1
                     
                 if(dominated_by_count ==0):
@@ -59,49 +74,63 @@ class HPCMapElites(MapElites):
         i = 0
         for front in fronts:
             #Use front number and order in front to come up with dictionary key
-            scores = {}
-            keys_found = {}
-            j = 0
+            scores = []
+            j = 0            
+            #Get number of scores in fitness function
+            for i in range(front[0][1]):
+                temp = {}
+                scores.append(temp)
+            #Uniquely identify elements in fronts based on front index and position in front
             for p in front:
-                #print(p[1][0])
-                #print(p[1][1])
-                scores[str(i) + "-" +str(j)] = p[1][0]
-                keys_found[str(i) + "-" +str(j)] = p[1][1]
                 j += 1
-                
-            scores = sorted(scores.items(), key=lambda item: item[1])
-            #keys_found  = {k: v for k, v in sorted(keys_found.items(), key=lambda item: item[1])}
-            keys_found = sorted(keys_found.items(), key=lambda item: item[1])
-            crowding_dist_score = {}
-            crowding_dist_keys = {}
+                for k in range(len(p[1])):
+                    scores[k][str(i) + "-" + str(j)] = p[1][k]
+
             crowding_dist = {}
+            crowding_dists_along_objectives = []
+            sorted_scores = []
             
-            for k in range(len(scores)):
-                if k == 0 or k == len(scores)-1:
-                    crowding_dist_score[scores[k][0]] = 99999
-                else:
-                    if scores[len(scores)-1][1] - scores[0][1]  != 0:
-                        crowding_dist_score[scores[k][0]] = (scores[k+1][1] - scores[k-1][1])/(scores[len(scores)-1][1] - scores[0][1] )
-                    else:
-                        crowding_dist_score[scores[k][0]] = 0
+            for score in scores:
+                sorted_scores.append(sorted(scores.items(),key = lambda item: item[1]))
                 
-            for k in range(len(keys_found)):
-                if k == 0 or k == len(keys_found)-1:
-                    crowding_dist_keys[keys_found[k][0]] = 99999
-                else:
-                    if keys_found[len(keys_found)-1][1] - keys_found[0][1] != 0:
-                        crowding_dist_keys[keys_found[k][0]] = (keys_found[k+1][1] - keys_found[k-1][1])/(keys_found[len(keys_found)-1][1] - keys_found[0][1])
+            for objective in sorted_scores:
+                temp = {}
+                for k in range(len(objective)):
+                    if k ==0 or k == len(objective)-1:
+                        temp[objective[k][0]] = 99999
                     else:
-                        crowding_dist_keys[keys_found[k][0]] = 0
+                        if objective[len(scores)-1][k] - scores[0][k] != 0:
+                            temp[objective[k][0]] = (objective[k+1][1] - objective[k-1][1])/(objective[len(objective)-1][1] - objective[0][1] )
+                        else:
+                            temp[objective[k][0]] = 0
+                    crowding_dists_along_objectives.append(temp)
+                        
+            ##in progress Start from here
             #print(crowding_dist_keys)
             #print(crowding_dist_score)
+            '''
             for j in range(len(front)):
                 key_val = str(i) + "-" + str(j)
                 if crowding_dist_keys[key_val] == 99999 or crowding_dist_score[key_val] == 99999:
                     crowding_dist[key_val] = 99999
                 else:
                     crowding_dist[key_val] = math.sqrt(crowding_dist_keys[key_val]**2 + crowding_dist_score[key_val]**2)
-                    
+            '''
+            for j in range(len(front)):
+                key_val = str(i) + "-" + str(j)
+                is_endpoint = False
+                for k in range(len(sorted_scores)):
+                    if crowding_dists_along_objectives[k][key_val] == 99999:
+                        crowding_dist[key_val] = 99999
+                        is_endpoint = True
+                        break
+                    else:
+                        crowding_dist[key_val] += (crowding_dists_along_objectives[k][key_val])**2
+                
+                if is_endpoint == False:
+                    crowding_dist[key_val] = math.sqrt(crowding_dist[key_val])
+                
+                
             
             crowding_dists.append(crowding_dist)
             i += 1
