@@ -15,7 +15,7 @@ class HPCMapElites(MapElites):
             model_state = self.random_variation()
         return model_state
     
-    def is_dominant(a,b):
+    def is_dominant(self,a,b):
         is_not_less_than = True
         has_one_better_objective = False
         for j in range(len(a[1])):
