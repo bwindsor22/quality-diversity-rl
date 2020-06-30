@@ -77,15 +77,14 @@ class HPCMapElites(MapElites):
             scores = []
             j = 0            
             #Get number of scores in fitness function
-            for i in range(len(front[0][1])):
+            for k in range(len(front[0][1])):
                 temp = {}
                 scores.append(temp)
             #Uniquely identify elements in fronts based on front index and position in front
             for p in front:
-                j += 1
                 for k in range(len(p[1])):
                     scores[k][str(i) + "-" + str(j)] = p[1][k]
-
+		j += 1
             crowding_dist = {}
             crowding_dists_along_objectives = []
             sorted_scores = []
