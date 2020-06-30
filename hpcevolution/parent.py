@@ -31,7 +31,7 @@ class Parent:
         self.evaluated_so_far = 0
         self.count_loops = 0
         #self.total_to_evaluate = num_iter
-        self.total_to_evaluate = 500
+        self.total_to_evaluate = 1250
         self.results_per_generation = 400
         self.work_per_generation = 0
         self.next_generation = True
@@ -55,6 +55,7 @@ class Parent:
         self.AVAILABLE_AGENTS_DIR.mkdir(exist_ok=True, parents=True)
         self.WORK_DIR.mkdir(exist_ok=True, parents=True)
         self.RESULTS_DIR.mkdir(exist_ok=True, parents=True)
+        self.fronts = []
 
         # ready to go
         self.map_elites = HPCMapElites(policy_net,
@@ -124,10 +125,17 @@ class Parent:
         logging.info('Logging final results')
         #logging.info(str(self.map_elites.population))
         for solution in self.map_elites.population:
-            print(solution[2])
-            print(solution[1])
+            logging.info(solution[2])
+            logging.info(solution[1])
             logging.info("")
-
+            torch.save(solution[0],'/scratch/bos221/qd-branches/nsgaii-multi-level/quality-diversity-rl/saved_models/torch_model_{}'.format(solution[2]))
+        i = 0
+        for front in self.fronts:
+            logging.info("front: " + str(i)) 
+            for p in front:
+                logging.info(p[2])
+                logging.info(p[1])
+            i += 1
 
     def get_available_children(self):
         active = self.AVAILABLE_AGENTS_DIR.glob('*' + AVAILABLE_EXTENSION)
@@ -153,6 +161,7 @@ class Parent:
     
     def update_population(self):
         fronts = self.map_elites.non_dominated_sort()
+        self.fronts = fronts
         crowding_dists = self.map_elites.crowding_distance(fronts)
         self.map_elites.select_new_population(fronts, crowding_dists)
     

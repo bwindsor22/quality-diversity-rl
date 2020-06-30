@@ -84,7 +84,7 @@ class HPCMapElites(MapElites):
             for p in front:
                 for k in range(len(p[1])):
                     scores[k][str(i) + "-" + str(j)] = p[1][k]
-		j += 1
+                j += 1
             crowding_dist = {}
             crowding_dists_along_objectives = []
             sorted_scores = []
@@ -98,7 +98,7 @@ class HPCMapElites(MapElites):
                     if k ==0 or k == len(objective)-1:
                         temp[objective[k][0]] = 99999
                     else:
-                        if objective[len(objective)-1][k] - objective[0][k] != 0:
+                        if objective[len(objective)-1][1] - objective[0][1] != 0:
                             temp[objective[k][0]] = (objective[k+1][1] - objective[k-1][1])/(objective[len(objective)-1][1] - objective[0][1] )
                         else:
                             temp[objective[k][0]] = 0
@@ -118,6 +118,7 @@ class HPCMapElites(MapElites):
             for j in range(len(front)):
                 key_val = str(i) + "-" + str(j)
                 is_endpoint = False
+                crowding_dist[key_val] = 0
                 for k in range(len(sorted_scores)):
                     if crowding_dists_along_objectives[k][key_val] == 99999:
                         crowding_dist[key_val] = 99999
@@ -129,8 +130,6 @@ class HPCMapElites(MapElites):
                 if is_endpoint == False:
                     crowding_dist[key_val] = math.sqrt(crowding_dist[key_val])
                 
-                
-            
             crowding_dists.append(crowding_dist)
             i += 1
         return crowding_dists
