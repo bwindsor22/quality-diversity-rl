@@ -44,10 +44,10 @@ class HPCMapElites(MapElites):
                 for q in unsorted_population:
                     #if p != q:
                     if p is not q:
-                        if is_dominant(p,q) == True:
+                        if self.is_dominant(p,q) == True:
                             dominated_count += 1
                             dominated_set.append(q)
-                        elif is_dominant(q,p):
+                        elif self.is_dominant(q,p):
                             dominated_by_count +=1
                     
                 if(dominated_by_count ==0):
@@ -77,7 +77,7 @@ class HPCMapElites(MapElites):
             scores = []
             j = 0            
             #Get number of scores in fitness function
-            for i in range(front[0][1]):
+            for i in range(len(front[0][1])):
                 temp = {}
                 scores.append(temp)
             #Uniquely identify elements in fronts based on front index and position in front
@@ -91,7 +91,7 @@ class HPCMapElites(MapElites):
             sorted_scores = []
             
             for score in scores:
-                sorted_scores.append(sorted(scores.items(),key = lambda item: item[1]))
+                sorted_scores.append(sorted(score.items(),key = lambda item: item[1]))
                 
             for objective in sorted_scores:
                 temp = {}
@@ -99,11 +99,11 @@ class HPCMapElites(MapElites):
                     if k ==0 or k == len(objective)-1:
                         temp[objective[k][0]] = 99999
                     else:
-                        if objective[len(scores)-1][k] - scores[0][k] != 0:
+                        if objective[len(objective)-1][k] - objective[0][k] != 0:
                             temp[objective[k][0]] = (objective[k+1][1] - objective[k-1][1])/(objective[len(objective)-1][1] - objective[0][1] )
                         else:
                             temp[objective[k][0]] = 0
-                    crowding_dists_along_objectives.append(temp)
+                crowding_dists_along_objectives.append(temp)
                         
             ##in progress Start from here
             #print(crowding_dist_keys)
@@ -138,8 +138,8 @@ class HPCMapElites(MapElites):
     
     def select_new_population(self,fronts,crowding_dists):
         #k = 25
-        k = 10
-        new_population_len = 40 
+        k = 20
+        new_population_len = 400 
         if self.population == 0:
             for front in fronts:
                 for p in front:
