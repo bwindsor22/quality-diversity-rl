@@ -6,43 +6,10 @@ from pathlib import Path
 import click
 
 from evolution.initialization_utils import get_initial_model
-from evolution.run_single_host_mapelite_train import SCORE_ALL, SCORE_WINNING, SCORE_LOSING
+from hpcevolution.cascading_fitness_evaluator import CascadingFitnessEvaluator
 from hpcevolution.constants import SLEEP_TIME, AVAILABLE_EXTENSION
 from hpcevolution.result import Result
-from models.caching_environment_maker import CachingEnvironmentMaker, GVGAI_BAM4D
-from models.evaluate_model import evaluate_net
-
-
-def combine_scores(scores, score, win, mode):
-    if mode == SCORE_ALL:
-        scores += score
-    elif mode == SCORE_WINNING:
-        if win == 1:
-            scores += score
-    elif mode == SCORE_LOSING:
-        if win == 0:
-            scores += score
-    return scores
-
-def fitness_feature_fn(score_strategy, stop_after, game, run_name, policy_net, env_maker):
-    """
-    Calculate fitess and feature descriptor simultaneously
-    """
-    scores = 0
-    wins = []
-    num_levels = 10 if game == 'gvgai-dzelda' else 5
-    for lvl in range(num_levels):
-        logging.debug('Running %s', f'{game}-lvl{lvl}-v0')
-        score, win = evaluate_net(policy_net,
-                                  game_level=f'{game}-lvl{lvl}-v0',
-                                  stop_after=stop_after,
-                                  env_maker=env_maker)
-        scores = combine_scores(scores, score, win, score_strategy)
-        wins.append(win)
-
-    fitness = scores
-    feature_descriptor = '-'.join([str(i) for i in wins])
-    return fitness, feature_descriptor
+from models.caching_environment_maker import CachingEnvironmentMaker, GVGAI_RUBEN, GVGAI_BAM4D
 
 class Child:
     def __init__(self, unique_id, gvgai_version, run_name, game):
@@ -52,12 +19,13 @@ class Child:
         logging.basicConfig(filename='../logs/{}-child-{}.log'.format(self.run_name, self.id), level=logging.INFO)
         logging.getLogger().addHandler(logging.StreamHandler())
         self.gvgai_version = gvgai_version
-        self.env_maker = CachingEnvironmentMaker(version=gvgai_version)
         self.run_name = run_name
         policy_net, init_model = get_initial_model(gvgai_version, game)
         self.model = policy_net
         self.tasks_processed = set()
         self.reset_every = 250
+
+        self.cascading_fitness_evaluator = CascadingFitnessEvaluator(gvgai_version=gvgai_version)
 
         #Set up directories
         parent = Path(__file__).parent
@@ -76,7 +44,7 @@ class Child:
         while True:
             logging.info('processed so far %d', len(self.tasks_processed))
             if len(self.tasks_processed) % self.reset_every == 0:
-                self.reset_environments()
+                self.cascading_fitness_evaluator.reset_environments()
             self.signal_unavailable()
             task_file = self.parse_received_task()
             if task_file:
@@ -117,20 +85,11 @@ class Child:
             return
         if success:
             try:
-                fitness, feature = fitness_feature_fn(task.score_strategy, task.stop_after, task.game,
-                                                                self.run_name, self.model, self.env_maker)
+                fitness, feature = self.cascading_fitness_evaluator.run_task(self.run_name, task, self.model)
                 result = Result(task.run_name, task.model, feature, fitness)
                 return result
             except Exception as e:
                 logging.info('ERROR running task. Error: %s', str(e))
-                self.reset_environments()
-
-    def reset_environments(self):
-        del self.env_maker
-        logging.info('Resetting env maker')
-        time.sleep(1)
-        self.env_maker = CachingEnvironmentMaker(version=self.gvgai_version)
-        logging.info('...reset finished')
 
 
     def write_result(self, result):

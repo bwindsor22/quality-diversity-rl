@@ -22,8 +22,8 @@ class SingleHostMapElites(MapElites):
             self.model.__init__(*self.init_model)
             model_state = self.model.state_dict()
             # print("CREATED")
-        elif self.cmame:
-            model_state = self.emitters.ask()
+        elif self.cmaes:
+            model_state = self.cmaes.ask()
         else:
             # print("VARIATING")
 
@@ -37,8 +37,8 @@ class SingleHostMapElites(MapElites):
             feature = self.feature_descriptor(model_state)
             performance = self.fitness(self.model)
 
-        if self.cmame:
-            self.emitters.tell(feature, model_state, performance)
+        if self.cmaes:
+            self.cmaes.tell(feature, model_state, performance)
 
         if feature not in self.performances or self.performances[feature] < performance:
             logging.debug('Found better performance for feature: {}, new score: {}'.format(feature, performance))

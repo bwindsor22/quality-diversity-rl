@@ -42,6 +42,13 @@ def select_action(state, policy_net, n_actions,
     else:
         return torch.tensor([[random.randrange(n_actions)]], device=device, dtype=torch.long)
 
+def select_action_without_random(state, policy_net):
+    with torch.no_grad():
+        # t.max(1) will return largest column value of each row.
+        # second column on max result is index of where max element was
+        # found, so we pick action with the larger expected reward.
+        return policy_net(state).max(1)[1].view(1, 1).item()
+
 
 def evaluate_net(policy_net,
                  game_level,

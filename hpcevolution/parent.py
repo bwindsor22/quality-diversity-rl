@@ -15,7 +15,7 @@ from hpcevolution.result import Result
 
 class Parent:
     def __init__(self, num_iter, run_name, score_strategy, game, stop_after, save_model, gvgai_version, num_threads, log_level, max_age, is_mortality,
-        is_crossover, crossover_possibility, mutate_possibility, mepgd_possibility, is_mepgd, cmame):
+        is_crossover, crossover_possibility, mutate_possibility, mepgd_possibility, is_mepgd, cmaes):
         self.run_name = run_name
         self.run_name_with_params = f'{run_name}-{game}-iter-{num_iter}-strat-{score_strategy}-stop-after-{stop_after}'
         logging.basicConfig(filename='../logs/parent-{}.log'.format(self.run_name_with_params), level=logging.INFO)
@@ -58,7 +58,7 @@ class Parent:
                   is_mepgd,
                   mepgd_possibility,
                   gvgai_version=gvgai_version,
-                  is_cmame=cmame)
+                  is_cmaes=cmaes)
 
     # import pickle
     # result = Result(run_data.model, '0-0-0-0-0', 10)

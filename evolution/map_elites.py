@@ -3,7 +3,7 @@ import random
 
 import torch
 
-from evolution.cmame.cmame import CMAEmitters
+from evolution.cma_es.cmaes import CMAES
 
 
 class MapElites(object):
@@ -24,7 +24,7 @@ class MapElites(object):
                  feature_descriptor=None,
                  fitness_feature=None,
                  gvgai_version=None,
-                 is_cmame=False):
+                 is_cmaes=False):
 
         self.solutions = {}
         self.performances = {}
@@ -49,11 +49,11 @@ class MapElites(object):
         self.normal_dist_variance = 0.03
         self.log_counts = 1000  # number of times to log intermediate results
 
-        self.cmame = is_cmame
-        if self.cmame:
+        self.cmaes = is_cmaes
+        if self.cmaes:
             self.model.__init__(*self.init_model)
             initial_state_dict = self.model.state_dict()
-            self.emitters = CMAEmitters(initial_state_dict)
+            self.cmaes = CMAES(initial_state_dict)
 
     def random_variation(self):
         logging.debug('doing random varation')

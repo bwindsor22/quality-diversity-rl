@@ -6,8 +6,8 @@ from evolution.map_elites import MapElites
 class HPCMapElites(MapElites):
 
     def next_model(self):
-        if self.cmame:
-            model_state = self.emitters.ask()
+        if self.cmaes:
+            model_state = self.cmaes.ask()
         elif len(self.solutions) < self.num_initial_solutions:
             self.model.__init__(*self.init_model)
             model_state = self.model.state_dict()
@@ -19,8 +19,8 @@ class HPCMapElites(MapElites):
     def update_result(self, network, feature, fitness):
         logging.info('Updating feature {}, performance {}'.format(feature, fitness))
 
-        if self.cmame:
-            self.emitters.tell(feature, network, fitness)
+        if self.cmaes:
+            self.cmaes.tell(network, feature, fitness)
         elif feature not in self.performances or self.performances[feature] < fitness:
             logging.info('Found better performance for feature: {}, new score: {}'.format(feature, fitness))
             self.performances[feature] = fitness
