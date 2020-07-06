@@ -37,8 +37,9 @@ class CMAES:
         logging.info('added to cmame queue, %d for %s',
                      len(self.data_queue))
 
+        performance = performance.item() if torch.is_tensor(performance) else performance
         # cma is set to minimize, so we invert
-        self.performances_queue.append(performance.item() * -1)
+        self.performances_queue.append(performance * -1)
         if len(self.data_queue) == self.pop_size:
             logging.info('Asking to prep')
             self.cmaes.ask(number=1)

@@ -26,17 +26,8 @@ done
 
 echo "agents is $AGENTS sbatch is $SBATCH";
 
-if [[$SBATCH]] then
-    for i in $(seq $AGENTS)
-    do
-        echo "starting sbatch $i" &
-        sbatch run_child.sbatch &
-    done
-else
-    for i in $(seq $AGENTS)
-    do
-        echo "starting $i" &
-        nohup  bash start_child.sh $i &
-    done
-fi
-
+for i in $(seq $AGENTS)
+do
+echo "starting sbatch $i" &
+sbatch run_child.sbatch &
+done
