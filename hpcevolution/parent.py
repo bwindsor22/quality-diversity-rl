@@ -31,7 +31,7 @@ class Parent:
         self.evaluated_so_far = 0
         self.count_loops = 0
         #self.total_to_evaluate = num_iter
-        self.total_to_evaluate = 1250
+        self.total_to_evaluate = 900
         self.results_per_generation = 400
         self.work_per_generation = 0
         self.next_generation = True
@@ -56,6 +56,7 @@ class Parent:
         self.WORK_DIR.mkdir(exist_ok=True, parents=True)
         self.RESULTS_DIR.mkdir(exist_ok=True, parents=True)
         self.fronts = []
+        self.crowding_dists = []
 
         # ready to go
         self.map_elites = HPCMapElites(policy_net,
@@ -79,10 +80,28 @@ class Parent:
         results = []
         while self.evaluated_so_far < self.total_to_evaluate:
             if self.count_loops % 200 == 0:
+                i = 0
                 logging.info('INTERMEDIATE PERFORMANCES')
                 for solution in self.map_elites.population:
                     logging.info(str(solution[2]))
                     logging.info(str(solution[1]))
+
+                logging.info("fronts")
+
+                for front in self.fronts:
+                    logging.info("front: " + str(i))
+                    for p in front:
+                        logging.info(p[2])
+                        logging.info(p[1])
+                    i += 1
+
+                logging.info("crowding distances")
+
+                for crowding_dist in self.crowding_dists:
+                    for itemid, distance in crowding_dist.items():
+                        logging.info(itemid)
+                        logging.info(distance)
+
             children = self.get_available_children()
             logging.info('{} available children, {} evals run'.format(len(children), self.evaluated_so_far))
             #100 solutions generated initially 50 selected and in the next generation approximately 50 new solutions generated
@@ -163,6 +182,7 @@ class Parent:
         fronts = self.map_elites.non_dominated_sort()
         self.fronts = fronts
         crowding_dists = self.map_elites.crowding_distance(fronts)
+        self.crowding_dists = crowding_dists
         self.map_elites.select_new_population(fronts, crowding_dists)
     
     def generate_run_data(self):
