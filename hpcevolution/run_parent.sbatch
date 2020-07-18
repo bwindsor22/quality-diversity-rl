@@ -4,7 +4,7 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=4
-#SBATCH --time=90:00:00
+#SBATCH --time=100:00:00
 #SBATCH --mem=10GB
 #SBATCH --output=/scratch/bos221/qd-branches/nsgaii-multi-level/quality-diversity-rl/logs/qdrl-master-parent-%A.out
 

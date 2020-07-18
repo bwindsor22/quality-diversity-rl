@@ -25,15 +25,16 @@ device = find_device()
 win_factor = 100
 
 def select_action(state, policy_net, n_actions,
-                  EPS_START=0.05,
-                  EPS_END=0.05,
+                  EPS_START=0.00,
+                  EPS_END=0.00,
                   EPS_DECAY=200,
                   ):
     global steps_done
     sample = random.random()
     eps_threshold = EPS_END + (EPS_START - EPS_END) * math.exp(-1. * steps_done / EPS_DECAY)
+    eps_threshold = 0
     steps_done += 1
-    if sample > eps_threshold:
+    if sample >= eps_threshold:
         with torch.no_grad():
             # t.max(1) will return largest column value of each row.
             # second column on max result is index of where max element was
@@ -95,12 +96,16 @@ def evaluate_net(policy_net,
         else:
             next_state = None
 
-        if info['winner'] == "PLAYER_WINS" or info['winner'] == 3:
-          sum_score += reward*win_factor
-        else:
-          sum_score += reward
-        if t % 200 == 0:
-            logging.debug('Time: {}, Reward: {}, Total Score: {}'.format(t, reward,  sum_score))
+        #if info['winner'] == "PLAYER_WINS" or info['winner'] == 3:
+          #sum_score += reward*win_factor
+          #sum_score += win_factor - winfactor(t/stop_after)
+        #else:
+          #sum_score += reward
+        #if t % 200 == 0:
+            #logging.debug('Time: {}, Reward: {}, Total Score: {}'.format(t, reward,  sum_score))
+
+        if not done:
+            sum_score += reward
 
 
         # Move to the next state
@@ -108,14 +113,17 @@ def evaluate_net(policy_net,
         if done or (stop_after and t >= int(stop_after)):
             if info['winner'] == "PLAYER_WINS" or info['winner'] == 3:
                 won = 1
+                sum_score += (10 - 10*(t/stop_after))
                 logging.debug('WIN')
                 logging.debug("Score: {}, won: {}".format(sum_score.item(), won))
             elif info['winner'] == "PLAYER_LOSES" or info['winner'] == 2:
                 won = 0
+                sum_score += -10*(t/stop_after)
                 logging.debug('LOSE')
                 logging.debug("Score: {}, won: {}".format(sum_score.item(), won))
             else:
                 won = 0
+                sum_score += -10*(t/stop_after) 
                 logging.debug('obs %s, done %s, info %s', str(obs), str(done), str(info))
                 logging.debug('Eval net stopped at {} steps'.format(t))
             break
