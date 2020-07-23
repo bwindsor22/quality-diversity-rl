@@ -4,7 +4,7 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=1
-#SBATCH --time=100:00:00
+#SBATCH --time=168:00:00
 #SBATCH --mem=5GB
 #SBATCH --output=/scratch/bos221/qd-branches/nsgaii-multi-level/quality-diversity-rl/logs/child-%A.out
 

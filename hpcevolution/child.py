@@ -32,7 +32,7 @@ def fitness_feature_fn(score_strategy, stop_after, game, run_name, policy_net, e
     wins = []
     keys_found = 0
     #num_levels = 10 if game == 'gvgai-dzelda' else 5
-    levels = [4,5,7]
+    levels = [4,5,7,8,3,9]
     #for lvl in range(num_levels):
     for lvl in levels:
         logging.debug('Running %s', f'{game}-lvl{lvl}-v0')
@@ -41,8 +41,17 @@ def fitness_feature_fn(score_strategy, stop_after, game, run_name, policy_net, e
                                   stop_after=stop_after,
                                   env_maker=env_maker)
         #scores = combine_scores(scores, score, win, score_strategy)
-        scores.append(score)
-        keys_found += key_found
+        if lvl == 8:
+            scores[0] += score
+        elif lvl == 3:
+            scores[1] += score
+        elif lvl == 9:
+            scores[2] += score
+
+        else:
+            scores.append(score)
+            keys_found += key_found
+
         wins.append(win)
         wins.append(key_found)
 

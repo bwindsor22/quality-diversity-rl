@@ -140,6 +140,16 @@ class Parent:
             logging.info('sleeping %d', SLEEP_TIME)
             time.sleep(SLEEP_TIME)
             self.count_loops += 1
+            
+            if self.evaluated_so_far % 250 == 0 and self.evaluated_so_far != 0:
+                logging.info("Intermediate Results : SAVING MODELS")
+                j = 0
+                for solution in self.map_elites.population:
+                    logging.info(solution[2])
+                    logging.info(solution[1])
+                    logging.info("")
+                    torch.save(solution[0],'/scratch/bos221/qd-branches/nsgaii-multi-level/quality-diversity-rl/saved_models/torch_model_{}_{}'.format(solution[2],str(j)))
+                    j +=1
 
         logging.info('Logging final results')
         #logging.info(str(self.map_elites.population))
