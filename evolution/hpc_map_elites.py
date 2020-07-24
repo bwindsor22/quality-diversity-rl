@@ -172,7 +172,7 @@ class HPCMapElites(MapElites):
         self.population = new_population
         
                 
-    def update_result(self, network, feature, fitness):
+    def update_result(self, network, feature, fitness, num_levels):
         #logging.info('Updating feature {}, performance {}'.format(feature, fitness))
         '''
         if self.cmame:
@@ -185,7 +185,7 @@ class HPCMapElites(MapElites):
         '''
         #Replace or add?
         #self.population = []
-        self.population.append((network,fitness,feature))
+        self.population.append((network,fitness,feature,num_levels))
         
         #Organize by rank
         #Find Pareto Front

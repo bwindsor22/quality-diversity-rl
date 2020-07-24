@@ -38,6 +38,8 @@ class Parent:
         pop_size = 400
         policy_net, init_model = get_initial_model(gvgai_version, game)
         population = []
+        self.num_levels = 2
+        self.objectives = [[5],[7]]
         
         #population.append(policy_net)
         
@@ -57,6 +59,7 @@ class Parent:
         self.RESULTS_DIR.mkdir(exist_ok=True, parents=True)
         self.fronts = []
         self.crowding_dists = []
+        self.levels = [5,7,8,4,9,3]
 
         # ready to go
         self.map_elites = HPCMapElites(policy_net,
@@ -178,7 +181,9 @@ class Parent:
             logging.info('loading result %s', file.stem)
             try:
                 #results.append((pickle.load(file.open('rb')), file))
-                results.append(pickle.load(file.open('rb')))
+                temp = pickle.load(file.open('rb'))
+                if temp.num_levels == self.num_levels:
+                    results.append(temp)
                 file.unlink()
             except Exception as e:
                 logging.info('failed to load result %s', str(e))
@@ -186,18 +191,62 @@ class Parent:
         return results
 
     def update_map_elites_results(self, result: Result):
-        self.map_elites.update_result(result.network, result.feature, result.fitness)
-    
+        self.map_elites.update_result(result.network, result.feature, result.fitness,result.num_levels)
+  
+
+    def reevaluate_population(self):
+       for solution in self.map_elites.population:
+           #write work with new objectives using old model
+           new_work = Work(model, self.score_strategy, self.game, self.stop_after, self.run_name_with_params, self.num_levels, self.objectives)
+           #find available children
+           #write work for available child           
+
+    def update_objectives(self):
+       self.num_levels +=1
+       self.objectives[0].append(objectives[1][0])
+       self.objectives[1][0] = self.levels[self.num_levels - 1]
+       self.reevaluate_population()
+
+
+    def check_objectives(self):
+        #Alternatively threshold of around 10 should work as well
+        won_all_levels = ""
+
+        for i in range(0,self.num_levels):
+            won_all_levels += "1-1"
+
+        for solution in self.map_elites.population:
+            if solution[2] == won_all_levels:
+                found_winning_agent = True
+                break
+        
+        if found_winning_agent == True:
+            self.update_objectives()
+
+
+
     def update_population(self):
+
+        #Remove non-updated models from population
+        filtered_population = []
+        for solution in self.population:
+            if solution[3] == self.num_levels:
+                filtered_population.append(solution)
+
+        self.population = filtered_population
+
+
         fronts = self.map_elites.non_dominated_sort()
         self.fronts = fronts
         crowding_dists = self.map_elites.crowding_distance(fronts)
         self.crowding_dists = crowding_dists
         self.map_elites.select_new_population(fronts, crowding_dists)
+        self.check_objectives()
     
+
     def generate_run_data(self):
         model = self.map_elites.next_model()
-        return Work(model, self.score_strategy, self.game, self.stop_after, self.run_name_with_params)
+        return Work(model, self.score_strategy, self.game, self.stop_after, self.run_name_with_params, self.num_levels, self.objectives)
 
     def write_work_for_child(self, work, child_name):
         path = self.WORK_DIR / str('task-id-{}-child-{}'.format(self.work_per_generation, child_name))

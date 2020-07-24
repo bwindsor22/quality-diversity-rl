@@ -24,33 +24,29 @@ def combine_scores(scores, score, win, mode):
             scores += score
     return scores
 
-def fitness_feature_fn(score_strategy, stop_after, game, run_name, policy_net, env_maker):
+def fitness_feature_fn(score_strategy, stop_after, game, run_name, policy_net, env_maker,num_levels):
     """
     Calculate fitess and feature descriptor simultaneously
     """
-    scores = []
+    scores = [0,0]
     wins = []
     keys_found = 0
     #num_levels = 10 if game == 'gvgai-dzelda' else 5
-    levels = [4,5,7,8,3,9]
+    #levels = [4,5,7,8,3,9]
+    levels = [5,7,8,4,9,3]
     #for lvl in range(num_levels):
-    for lvl in levels:
+    for lvl in levels[0:num_levels]:
         logging.debug('Running %s', f'{game}-lvl{lvl}-v0')
         score, win,key_found = evaluate_net(policy_net,
                                   game_level=f'{game}-lvl{lvl}-v0',
                                   stop_after=stop_after,
                                   env_maker=env_maker)
         #scores = combine_scores(scores, score, win, score_strategy)
-        if lvl == 8:
+        if lvl in objectives[0]:
             scores[0] += score
-        elif lvl == 3:
-            scores[1] += score
-        elif lvl == 9:
-            scores[2] += score
 
         else:
-            scores.append(score)
-            keys_found += key_found
+            scores[1] += score
 
         wins.append(win)
         wins.append(key_found)
@@ -134,8 +130,8 @@ class Child:
         if success:
             try:
                 fitness, feature = fitness_feature_fn(task.score_strategy, task.stop_after, task.game,
-                                                                self.run_name, self.model, self.env_maker)
-                result = Result(task.run_name, task.model, feature, fitness)
+                                                                self.run_name, self.model, self.env_maker, task.num_levels,task.objectives)
+                result = Result(task.run_name, task.model, feature, fitness, num_levels)
                 return result
             except Exception as e:
                 logging.info('ERROR running task. Error: %s', str(e))

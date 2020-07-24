@@ -1,5 +1,5 @@
 class Work:
-    def __init__(self, model, score_strategy,game,stop_after,run_name,num_levels,objectives):
+    def __init__(self, model, score_strategy,game,stop_after,run_name,num_levels, objectives):
         self.model = model
         self.score_strategy = score_strategy
         self.game = game
