@@ -144,7 +144,7 @@ class Parent:
             time.sleep(SLEEP_TIME)
             self.count_loops += 1
             
-            if self.evaluated_so_far % 250 == 0 and self.evaluated_so_far != 0:
+            if self.evaluated_so_far % 100 == 0 and self.evaluated_so_far != 0:
                 logging.info("Intermediate Results : SAVING MODELS")
                 j = 0
                 for solution in self.map_elites.population:
@@ -194,10 +194,10 @@ class Parent:
         self.map_elites.update_result(result.network, result.feature, result.fitness,result.num_levels)
   
 
-    def reevaluate_population(self):
-       for solution in self.map_elites.population:
+    #def reevaluate_population(self):
+       #for solution in self.map_elites.population:
            #write work with new objectives using old model
-           new_work = Work(model, self.score_strategy, self.game, self.stop_after, self.run_name_with_params, self.num_levels, self.objectives)
+           #new_work = Work(model, self.score_strategy, self.game, self.stop_after, self.run_name_with_params, self.num_levels, self.objectives)
            #find available children
            #write work for available child           
 
@@ -205,11 +205,13 @@ class Parent:
        self.num_levels +=1
        self.objectives[0].append(objectives[1][0])
        self.objectives[1][0] = self.levels[self.num_levels - 1]
-       self.reevaluate_population()
+       #self.reevaluate_population()
 
 
     def check_objectives(self):
         #Alternatively threshold of around 10 should work as well
+
+        found_winning_agent = False
         won_all_levels = ""
 
         for i in range(0,self.num_levels):
@@ -229,11 +231,11 @@ class Parent:
 
         #Remove non-updated models from population
         filtered_population = []
-        for solution in self.population:
+        for solution in self.map_elites.population:
             if solution[3] == self.num_levels:
                 filtered_population.append(solution)
 
-        self.population = filtered_population
+        self.map_elites.population = filtered_population
 
 
         fronts = self.map_elites.non_dominated_sort()

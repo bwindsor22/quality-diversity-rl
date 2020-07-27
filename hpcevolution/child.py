@@ -24,7 +24,7 @@ def combine_scores(scores, score, win, mode):
             scores += score
     return scores
 
-def fitness_feature_fn(score_strategy, stop_after, game, run_name, policy_net, env_maker,num_levels):
+def fitness_feature_fn(score_strategy, stop_after, game, run_name, policy_net, env_maker,num_levels,objectives):
     """
     Calculate fitess and feature descriptor simultaneously
     """
@@ -131,7 +131,7 @@ class Child:
             try:
                 fitness, feature = fitness_feature_fn(task.score_strategy, task.stop_after, task.game,
                                                                 self.run_name, self.model, self.env_maker, task.num_levels,task.objectives)
-                result = Result(task.run_name, task.model, feature, fitness, num_levels)
+                result = Result(task.run_name, task.model, feature, fitness, task.num_levels)
                 return result
             except Exception as e:
                 logging.info('ERROR running task. Error: %s', str(e))
