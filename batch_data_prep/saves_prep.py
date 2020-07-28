@@ -4,8 +4,10 @@ import numpy as np
 from pathlib import Path
 from datetime import datetime
 from collections import defaultdict
+saves_dir = '/Users/bradwindsor/ms_projects/qd-gen/gameQD/saves'
 saves_dir = '/scratch/bw1879/quality-diversity-rl/saves'
-all_files = list(Path(saves_dir).glob('*.pkl'))
+all_files = sorted(list(Path(saves_dir).glob('*.pkl')))
+
 print(len(all_files))
 
 
@@ -17,8 +19,7 @@ for file_ in saves_numpy.glob('*'):
 
 start = datetime.now()
 count = 0
-counter = defaultdict(int)
-for file_ in all_files:
+for file_ in all_files[:100000]:
     dps = pickle.load(open(str(file_), 'rb'))
     for dp in dps:
         # point = dp['type'] + '_' + str(int(dp['reward']))
@@ -26,7 +27,7 @@ for file_ in all_files:
         rew = int(dp['reward'])
         point = crit + '_' + str(rew)
         counter[point] += 1
-        if point == 'samp_0':
+        if point == 'no_0' or point == 'samp_0':
             #skip: random screen saved for evaluator
             continue
         action = dp['action']

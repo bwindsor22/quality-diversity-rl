@@ -3,13 +3,13 @@ import time
 import re
 import numpy as np
 import torch
+from datetime import datetime
 from itertools import islice
 from pathlib import Path
 from models.evaluate_model import evaluate_net
 from models.evaluate_model import select_action_without_random
 from evolution.run_single_host_mapelite_train import SCORE_ALL, SCORE_WINNING, SCORE_LOSING
 from models.caching_environment_maker import CachingEnvironmentMaker
-
 
 saves_numpy = Path(__file__).parent.parent / 'saves_numpy'
 
@@ -18,32 +18,43 @@ class CascadingFitnessEvaluator:
     def __init__(self, gvgai_version=None):
         self.gvgai_version = gvgai_version
         self.env_maker = CachingEnvironmentMaker(version=gvgai_version)
-        self.real_world_emphasis = 1000
-        self.num_cached_evals = 10
-        self.num_disk_evals   = 100
-        self.threshold_cached = 0.05
-        self.threshold_disk   = 0.01
+        self.real_world_emphasis = 10000
+        self.num_cached_evals = 30000
+        self.num_disk_evals   = 60000
+        self.threshold_cached = 0.5
+        self.threshold_disk   = 0.5
+
+        start = datetime.now()
+        logging.info('loading cached points')
         self.cached_dp = self.load_cached_saved_evals()
+        logging.info('loaded cached points in %s', str(datetime.now() - start))
 
     def run_task(self, run_name, task, model):
-
+        start = datetime.now()
+        logging.info('beginning cached eval')
         all_cached_score, all_cached_correct = self.eval_cached(model)
         percent_correct = all_cached_correct / self.num_cached_evals
+        
+        logging.info('eval finished on cached, %f, %d, %s', percent_correct, all_cached_score, str(datetime.now() - start))
         if percent_correct < self.threshold_cached:
-            logging.info('eval finished on cached, %f, %d', percent_correct, all_cached_score)
             return all_cached_score, 'cached'
 
-        all_disk_score, all_disk_correct = self.eval_cached(model)
+        logging.info('beginning disk eval')
+        start = datetime.now()
+        all_disk_score, all_disk_correct = self.eval_disk(model)
         percent_correct = all_disk_correct / (self.num_disk_evals - self.num_cached_evals)
-        cached_disk_score = all_cached_score + all_disk_score + BIG_SUCCESS
+        cached_disk_score = all_cached_score + all_disk_score + LEVEL_BONUS
+        logging.info('eval finished on disk, %f, %d, %s', percent_correct, cached_disk_score, str(datetime.now() - start))
         if percent_correct < self.threshold_disk:
-            logging.info('eval finished on disk, %f, %d', percent_correct, cached_disk_score)
             return all_cached_score + all_disk_score, 'disk'
 
+        logging.info('beginning game eval')
+        start = datetime.now()
         fitness, feature = game_fitness_feature_fn(task.score_strategy, task.stop_after, task.game,
                                                    run_name, model, self.env_maker)
-        final_score = fitness * self.real_world_emphasis + cached_disk_score
-        logging.info('eval finished on real game %d = %d * %d, disk: %d, cached: %d', final_score, fitness, self.real_world_emphasis, all_disk_score, all_cached_score)
+        fitness = fitness.item() if torch.is_tensor(fitness) else fitness
+        final_score = fitness * self.real_world_emphasis + cached_disk_score + 5 * LEVEL_BONUS
+        logging.info('eval finished on real game %d = %d * %d, disk: %d, cached: %d, time: %s', final_score, fitness, self.real_world_emphasis, all_disk_score, all_cached_score, str(datetime.now() - start))
         return final_score, feature
 
 
@@ -95,7 +106,7 @@ class CascadingFitnessEvaluator:
 
 
 
-
+LEVEL_BONUS = 100000
 BIG_SUCCESS = 1000
 BIG_FAILURE = -1
 def score_action_on_screen(screen, model, params):
@@ -107,18 +118,18 @@ def score_action_on_screen(screen, model, params):
     assert isinstance(model_action, int)
     assert isinstance(dp_reward, int)
     assert isinstance(dp_action, int)
-    print('dp_type', dp_type, 'dp_action', dp_action, 'model_action', model_action, 'dp_reward', dp_reward)
+    #print('dp_type', dp_type, 'dp_action', dp_action, 'model_action', model_action, 'dp_reward', dp_reward)
     if dp_type == 'win':
         if model_action == dp_action:
             return BIG_SUCCESS, 1
         else:
             return 0, 0
-    elif dp_type == 'loser':
+    elif dp_type == 'lose':
         if model_action == dp_action:
             return BIG_FAILURE, 0
         else:
             return 0, 0
-    elif dp_type == 'no':
+    elif dp_type == 'none' or dp_type == 'samp':
         if model_action == dp_action:
             return dp_reward, 1
         else:
