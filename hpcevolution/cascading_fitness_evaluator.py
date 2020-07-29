@@ -18,11 +18,11 @@ class CascadingFitnessEvaluator:
     def __init__(self, gvgai_version=None):
         self.gvgai_version = gvgai_version
         self.env_maker = CachingEnvironmentMaker(version=gvgai_version)
-        self.real_world_emphasis = 10000
-        self.num_cached_evals = 30000
-        self.num_disk_evals   = 60000
-        self.threshold_cached = 0.5
-        self.threshold_disk   = 0.5
+        self.real_world_emphasis = 1000
+        self.num_cached_evals = 80000
+        self.num_disk_evals   = 100000
+        self.threshold_cached = 0.8
+        self.threshold_disk   = 0.8
 
         start = datetime.now()
         logging.info('loading cached points')
@@ -106,9 +106,9 @@ class CascadingFitnessEvaluator:
 
 
 
-LEVEL_BONUS = 100000
-BIG_SUCCESS = 1000
-BIG_FAILURE = -1
+LEVEL_BONUS = 0
+BIG_SUCCESS = 2
+BIG_FAILURE = -2
 def score_action_on_screen(screen, model, params):
     """
     :return: tuple: score, right decision
@@ -128,7 +128,7 @@ def score_action_on_screen(screen, model, params):
         if model_action == dp_action:
             return BIG_FAILURE, 0
         else:
-            return 0, 0
+            return 0, 1
     elif dp_type == 'none' or dp_type == 'samp':
         if model_action == dp_action:
             return dp_reward, 1
