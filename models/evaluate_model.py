@@ -55,8 +55,7 @@ def evaluate_net(policy_net,
                  ):
 
     logging.info('making level %s', game_level)
-    run_id = str(uuid.uuid4())
-    SAVE_DIR = Path(__file__).parent.parent / 'saves'
+    SAVE_DIR = Path(__file__).parent.parent / 'saves_numpy'
 
     if env_maker:
         env = env_maker(game_level)
@@ -95,10 +94,9 @@ def evaluate_net(policy_net,
 
         is_sample = random.random() * 25000 <= 1
         if is_winner or is_loser or reward_raw > 0 or is_sample:
-            history.append(history_dict(state, action, reward_raw, info, is_winner, is_loser, is_sample))
-
-        # numpy_save(SAVE_DIR, game_level, state, action, t, reward_raw, is_winner, is_loser)
-
+            # history.append(history_dict(state, action, reward_raw, info, is_winner, is_loser, is_sample))
+            save_before_during_after(SAVE_DIR, game_level, prev_state, state, env, device, action, t, reward_raw,
+                                     is_winner, is_loser, is_sample)
         if is_winner:
           sum_score += reward*win_factor
         else:
@@ -126,27 +124,39 @@ def evaluate_net(policy_net,
                 logging.debug('Eval net stopped at {} steps'.format(t))
             break
 
-    if len(history) >= 5:
-        logging.info('saving %d critical points history', len(history))
-        file_name = SAVE_DIR / f'{run_id}_{game_level}_step_{t}_win_{won}.pkl'
-        pickle.dump(history, open(file_name, 'wb'))
 
     logging.info('Completed one level eval')
-    # numpy_save(SAVE_DIR, game_level, current_screen, action, t, reward_raw, is_winner, is_loser)
+    is_sample = False
+    save_before_during_after(SAVE_DIR, game_level, prev_state, state, env, device, action, t, reward_raw, is_winner,
+                             is_loser, is_sample)
     env.close()
 
     return sum_score, won, t
 
-def numpy_save(SAVE_DIR, game_level, current_screen, action, t, reward_raw, is_winner, is_loser):
-    if is_winner or is_loser or reward_raw > 0:
+def save_before_during_after(SAVE_DIR, game_level, prev_state, state, env, device, action, t, reward_raw, is_winner, is_loser, is_sample):
+    crit = critical_label(is_winner, is_loser, is_sample)
+    run_id = str(uuid.uuid4())
+    numpy_save(SAVE_DIR, run_id, game_level, prev_state, action, t, reward_raw, crit, '-1')
+    numpy_save(SAVE_DIR, run_id, game_level, state, action, t, reward_raw, crit, '0')
+    result_screen = get_screen(env, device)
+    numpy_save(SAVE_DIR, run_id, game_level, result_screen, action, t, reward_raw, crit, '1')
+
+
+def numpy_save(SAVE_DIR, run_id, game_level, current_screen, action, t, reward_raw, crit, frame_num):
+    if crit == 'win' or crit == 'lose' or reward_raw > 0:
         if not SAVE_DIR.exists():
             SAVE_DIR.mkdir(exist_ok=True, parents=True)
         screen_numpy = current_screen.numpy()
         action_val = action.item()
-        win_val = 'win' if is_winner else 'lose' if is_loser else '__'
-        file_name = SAVE_DIR / f'{game_level}_step_{t}_act_{action_val}_reward_{reward_raw}_win_{win_val}.npy'
+        file_name = SAVE_DIR / f'{run_id}_{game_level}_step_{t}_act_{action_val}_reward_{reward_raw}_crit_{crit}_seq_{frame_num}.npy'
         with open(str(file_name), 'wb') as f:
             np.save(f, screen_numpy)
+
+def critical_label(is_winner, is_loser, is_sample):
+    return 'win' if is_winner \
+        else 'lose' if is_loser \
+        else 'samp' if is_sample else 'other'
+
 
 def history_dict(current_screen, action, reward_raw, info, is_winner, is_loser, is_sample):
     if 'actions' in info:
