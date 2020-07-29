@@ -76,8 +76,7 @@ def evaluate_net(policy_net,
     sum_score = 0
     won = 0
 
-    history = []
-    prev_state = state
+    history_small = []
     for t in count():
         action = select_action(state, policy_net, n_actions)
 
@@ -89,14 +88,13 @@ def evaluate_net(policy_net,
 
         obs, reward_raw, done, info = env.step(action.item())
         reward = torch.tensor([reward_raw], device=device)
+
+        # append to current history
         is_winner = info['winner'] == "PLAYER_WINS" or info['winner'] == 3
         is_loser = info['winner'] == "PLAYER_LOSES" or info['winner'] == 2
+        crit = critical_label(is_winner, is_loser, False)
+        history_small.append((action, state, reward_raw, crit))
 
-        is_sample = random.random() * 25000 <= 1
-        if is_winner or is_loser or reward_raw > 0 or is_sample:
-            # history.append(history_dict(state, action, reward_raw, info, is_winner, is_loser, is_sample))
-            save_before_during_after(SAVE_DIR, game_level, prev_state, state, env, device, action, t, reward_raw,
-                                     is_winner, is_loser, is_sample)
         if is_winner:
           sum_score += reward*win_factor
         else:
@@ -105,10 +103,16 @@ def evaluate_net(policy_net,
             logging.info('Time: {}, Reward: {}, Total Score: {}'.format(t, reward,  sum_score))
 
         # Observe new state
-        prev_state = state
         state = get_screen(env, device)
 
-        # Move to the next state
+        # modify and save history as apropriate
+        if len(history_small) > 3:
+            history_small.pop(0)
+        if is_winner or is_loser or reward_raw > 0:
+            history_small.append((-10, state, -10, crit))
+            save_small(SAVE_DIR, game_level, history_small, t)
+
+        # Decide if to break
         if done or (stop_after and t >= int(stop_after)):
             if is_winner:
                 won = 1
@@ -126,12 +130,17 @@ def evaluate_net(policy_net,
 
 
     logging.info('Completed one level eval')
-    is_sample = False
-    save_before_during_after(SAVE_DIR, game_level, prev_state, state, env, device, action, t, reward_raw, is_winner,
-                             is_loser, is_sample)
+
     env.close()
 
     return sum_score, won, t
+
+def save_small(SAVE_DIR, game_level, history_small, t):
+    run_id = str(uuid.uuid4())
+    for i, data in enumerate(history_small):
+        action, state, reward_raw, crit = data
+        numpy_save(SAVE_DIR, run_id, game_level, state, action, t, reward_raw, crit, str(i - 1))
+
 
 def save_before_during_after(SAVE_DIR, game_level, prev_state, state, env, device, action, t, reward_raw, is_winner, is_loser, is_sample):
     crit = critical_label(is_winner, is_loser, is_sample)
@@ -143,14 +152,13 @@ def save_before_during_after(SAVE_DIR, game_level, prev_state, state, env, devic
 
 
 def numpy_save(SAVE_DIR, run_id, game_level, current_screen, action, t, reward_raw, crit, frame_num):
-    if crit == 'win' or crit == 'lose' or reward_raw > 0:
-        if not SAVE_DIR.exists():
-            SAVE_DIR.mkdir(exist_ok=True, parents=True)
-        screen_numpy = current_screen.numpy()
-        action_val = action.item()
-        file_name = SAVE_DIR / f'{run_id}_{game_level}_step_{t}_act_{action_val}_reward_{reward_raw}_crit_{crit}_seq_{frame_num}.npy'
-        with open(str(file_name), 'wb') as f:
-            np.save(f, screen_numpy)
+    if not SAVE_DIR.exists():
+        SAVE_DIR.mkdir(exist_ok=True, parents=True)
+    screen_numpy = current_screen.numpy()
+    action_val = action.item() if torch.is_tensor(action) else action
+    file_name = SAVE_DIR / f'{run_id}_{game_level}_step_{t}_act_{action_val}_reward_{reward_raw}_crit_{crit}_seq_{frame_num}.npy'
+    with open(str(file_name), 'wb') as f:
+        np.save(f, screen_numpy)
 
 def critical_label(is_winner, is_loser, is_sample):
     return 'win' if is_winner \
