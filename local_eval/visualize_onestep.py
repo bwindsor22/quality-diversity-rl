@@ -6,7 +6,7 @@ from pathlib import Path
 
 
 prefix = '/Users/bradwindsor/ms_projects/qd-gen/gameQD/saves_numpy/'
-run_name = 'gvgai-zelda-lvl4-v0_step_337_act_1_reward_2.0_crit_other'
+run_name = '68b95170-202d-4f49-a50c-e9dc51d1149e'
 files = Path(prefix).glob(f'{run_name}*')
 
 for i, f in enumerate(files):
