@@ -8,9 +8,18 @@ A typical install and run might look like:
 * `git clone https://github.com/bwindsor22/quality-diversity-rl.git`
 * `cd quality-diversity-rl`
 * `bash install_bam4d.sh`
-* ```export PYTHONPATH=`pwd`:$PYTHONPATH```
-* `python evolution/run_mapelite_train.py --num_threads 9 --num_iter 50000`
+* `cd hpcevolution`
+* `bash run_parent.sh` # see "multithreading" below
+* (In a new terminal)`bash start_child.sh 1`
 
+### Multithreading
+* To mimic the HPC when running locally, run different threads in different terminal windows. 
+    *  For instance,
+`bash run_parent.sh` starts the parent process, which runs the core map elites algorithm (Vanilla Map Elites, CMAME, etc)
+    * `bash start_child.sh 1` starts a child with id 1 which can receive "work" (in the form of agents to be evaluated) and returns "Results" (fitness values) to the parent
+    * `bash start_child.sh 2` starts a second child with id 2. We can start as many children as our cpu can handle.
+    * Our parents and children communicate by writing work and results to disk, to a folder specified by the `--run_name` argument in the bash files. It is best to delete this file when restarting a run.
+    * All parents and children have their own log files; see 'logs' folder for the output
 
 #### Testing and debugging setup
 * There are two gvgai libraries. `install.sh` installs the ruben library, which was tested mac. `install_bam4d.sh` installs the bam4d library, which was tested on unix. 

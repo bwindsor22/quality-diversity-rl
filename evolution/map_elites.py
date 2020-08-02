@@ -42,12 +42,17 @@ class MapElites(object):
         self.is_mortality = is_mortality
         self.cross_poss = cross_poss
         self.mutate_poss = mutate_poss
-        self.fitness = fitness  # not used
         self.feature_descriptor = feature_descriptor
         self.fitness_feature = fitness_feature
         self.gvgai_version = gvgai_version
         self.normal_dist_variance = 0.03
         self.log_counts = 1000  # number of times to log intermediate results
+
+        self.cmame = is_cmame
+        if self.cmame:
+            self.model.__init__(*self.init_model)
+            initial_state_dict = self.model.state_dict()
+            self.emitters = CMAEmitters(initial_state_dict)
 
         self.cmame = is_cmame
         if self.cmame:
@@ -82,6 +87,7 @@ class MapElites(object):
         states = list(state.items())
         new_state = {}
         for l, x in states:
+            # new_state[l] = torch.where(torch.rand_like(x) > self.mutate_poss, torch.randn_like(x), x)
             if l[-6:] == "weight" or l[-4:] == "bias":
                 new_state[l] = torch.where(torch.rand_like(x) > self.mutate_poss,
                                            torch.randn_like(x) * self.normal_dist_variance + x,
@@ -113,3 +119,4 @@ class MapElites(object):
                 del self.ages[key]
             else:
                 self.ages[key] += 1
+
