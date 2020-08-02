@@ -6,6 +6,7 @@ This repository contains the code for the GIL project on general gameplay throug
 ### Setup
 A typical install and run might look like: 
 * `git clone https://github.com/bwindsor22/quality-diversity-rl.git`
+* `git checkout hpc`
 * `cd quality-diversity-rl`
 * `bash install_bam4d.sh`
 * `cd hpcevolution`
