@@ -33,7 +33,7 @@ def fitness_feature_fn(score_strategy, stop_after, game, run_name, policy_net, e
     keys_found = 0
     #num_levels = 10 if game == 'gvgai-dzelda' else 5
     #levels = [4,5,7,8,3,9]
-    levels = [5,7,8,4,9,3]
+    levels = [5,7,4,8,9,3,1,0,2,6]
     #for lvl in range(num_levels):
     for lvl in levels[0:num_levels]:
         logging.debug('Running %s', f'{game}-lvl{lvl}-v0')

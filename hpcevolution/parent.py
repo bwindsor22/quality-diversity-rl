@@ -59,7 +59,7 @@ class Parent:
         self.RESULTS_DIR.mkdir(exist_ok=True, parents=True)
         self.fronts = []
         self.crowding_dists = []
-        self.levels = [5,7,8,4,9,3]
+        self.levels = [5,7,4,8,9,3,1,0,2,6]
 
         # ready to go
         self.map_elites = HPCMapElites(policy_net,
@@ -151,7 +151,7 @@ class Parent:
                     logging.info(solution[2])
                     logging.info(solution[1])
                     logging.info("")
-                    torch.save(solution[0],'/scratch/bos221/qd-branches/nsgaii-multi-level/quality-diversity-rl/saved_models/torch_model_{}_{}'.format(solution[2],str(j)))
+                    torch.save(solution[0],'/scratch/bos221/qd-branches/nsgaii-dynamic-objectives/quality-diversity-rl/saved_models/torch_model_{}_{}'.format(solution[2],str(j)))
                     j +=1
 
         logging.info('Logging final results')
