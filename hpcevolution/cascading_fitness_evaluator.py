@@ -11,21 +11,26 @@ from models.evaluate_model import select_action_without_random
 from evolution.run_single_host_mapelite_train import SCORE_ALL, SCORE_WINNING, SCORE_LOSING
 from models.caching_environment_maker import CachingEnvironmentMaker
 
-saves_formatted = Path(__file__).parent.parent / 'saves_formatted'
+saves_numpy = Path(__file__).parent.parent / 'saves_numpy'
 
 
 class CascadingFitnessEvaluator:
     def __init__(self, gvgai_version=None):
         self.gvgai_version = gvgai_version
         self.env_maker = CachingEnvironmentMaker(version=gvgai_version)
-        self.default_count = 100000
+        self.default_count = 50000
 
-        self.attack_to_score_dir = saves_formatted / 'other' / '2.0' / '1'
-        self.attack_to_lose_dir = saves_formatted / 'lose' / '-1.0' / '1'
-        self.do_not_lose_dir = saves_formatted / 'lose' / '-1.0' / 'other'
+        # self.attack_to_score_dir = saves_formatted / 'other' / '2.0' / '1'
+        # self.attack_to_lose_dir = saves_formatted / 'lose' / '-1.0' / '1'
+        # self.do_not_lose_dir = saves_formatted / 'lose' / '-1.0' / 'other'
 
+        # self.do_not_lose_dir = '*crit_lose*.npy'
 
-        start = datetime.now()
+        self.attack_to_score = '*act_1_reward_2.0_crit_other*.npy' # 553
+        self.attack_to_lose = '*act_1_*crit_lose*.npy' # 3,542
+        self.reward_1 = '*reward_1.0_crit_other*.npy' # 1,682
+        self.do_win = '*reward_1.0_crit_win*.npy' # 8,798
+
 
     def run_task(self, run_name, task, model):
         total_score = 0
@@ -34,7 +39,7 @@ class CascadingFitnessEvaluator:
         start = datetime.now()
         def eval_function(act, record):
             return int(act) == 1
-        att_score = self.eval_model(model, self.attack_to_score_dir, eval_function, self.default_count)
+        att_score = self.eval_model(model, self.attack_to_score, eval_function, self.default_count)
         total_score += att_score
         logging.info('Finished attack to score with %d score, total: %d,  in %s', att_score, total_score, str(datetime.now() - start))
 
@@ -43,20 +48,32 @@ class CascadingFitnessEvaluator:
         start = datetime.now()
         def eval_function(act, record):
             return int(act) != 1
-        no_att_score = self.eval_model(model, self.attack_to_score_dir, eval_function, self.default_count)
+        no_att_score = self.eval_model(model, self.attack_to_lose, eval_function, self.default_count)
         total_score += no_att_score
         logging.info('Finished attack to lose with %d score, total: %d,  in %s', no_att_score, total_score, str(datetime.now() - start))
 
         if not (att_score > 0 and no_att_score > 0):
-            return total_score, 'training'
+            return total_score, 'attack_no_attack'
 
-        logging.info('beginning do not lose')
+        logging.info('beginning reward_1')
         start = datetime.now()
         def eval_function(act, record):
-            return int(act) != int(record)
-        score = self.eval_model(model, self.attack_to_score_dir, eval_function, self.default_count)
-        total_score += score
-        logging.info('Finished do not lose with %d score, total: %d,  in %s', score, total_score, str(datetime.now() - start))
+            return int(act) == int(record)
+        rew_1_score = self.eval_model(model, self.reward_1, eval_function, self.default_count)
+        total_score += rew_1_score
+        logging.info('Finished do not lose with %d score, total: %d,  in %s', rew_1_score, total_score, str(datetime.now() - start))
+
+        logging.info('beginning do win')
+        start = datetime.now()
+        def eval_function(act, record):
+            return int(act) == int(record)
+        win_score = self.eval_model(model, self.do_win, eval_function, self.default_count)
+        total_score += win_score
+        logging.info('Finished do win with %d score, total: %d,  in %s', win_score, total_score, str(datetime.now() - start))
+
+        if not (rew_1_score > 0 and win_score > 0):
+            return total_score, 'rew_1_win'
+
 
         logging.info('beginning game eval')
         start = datetime.now()
@@ -68,15 +85,20 @@ class CascadingFitnessEvaluator:
         return total_score, feature
 
 
-    def eval_model(self, model, dir, eval_function, eval_count):
+    def eval_model(self, model, dir, eval_function, eval_count, skip_1=False):
         score = 0
-        for i, file in enumerate(dir.glob('*.npy')):
+        i = 0
+        # for i, file in enumerate(dir.glob('*.npy')):
+        for file in saves_numpy.glob(dir):
+            parts = parse_name(file.stem)
+            if int(parts['act']) == 1 and skip_1:
+                continue
             if i >= eval_count:
                 return score
             screen = np.load(str(file))
-            parts = parse_name(file.stem)
             model_action = select_action_without_random(torch.tensor(screen), model)
             score += eval_function(model_action, parts['act'])
+            i += 1
         return score
 
 
