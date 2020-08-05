@@ -11,91 +11,74 @@ from models.evaluate_model import select_action_without_random
 from evolution.run_single_host_mapelite_train import SCORE_ALL, SCORE_WINNING, SCORE_LOSING
 from models.caching_environment_maker import CachingEnvironmentMaker
 
-saves_numpy = Path(__file__).parent.parent / 'saves_numpy'
+saves_formatted = Path(__file__).parent.parent / 'saves_formatted'
 
 
 class CascadingFitnessEvaluator:
     def __init__(self, gvgai_version=None):
         self.gvgai_version = gvgai_version
         self.env_maker = CachingEnvironmentMaker(version=gvgai_version)
-        self.real_world_emphasis = 1000
-        self.num_cached_evals = 80000
-        self.num_disk_evals   = 100000
-        self.threshold_cached = 0.8
-        self.threshold_disk   = 0.8
+        self.default_count = 100000
+
+        self.attack_to_score_dir = saves_formatted / 'other' / '2.0' / '1'
+        self.attack_to_lose_dir = saves_formatted / 'lose' / '-1.0' / '1'
+        self.do_not_lose_dir = saves_formatted / 'lose' / '-1.0' / 'other'
+
 
         start = datetime.now()
-        logging.info('loading cached points')
-        self.cached_dp = self.load_cached_saved_evals()
-        logging.info('loaded cached points in %s', str(datetime.now() - start))
 
     def run_task(self, run_name, task, model):
-        start = datetime.now()
-        logging.info('beginning cached eval')
-        all_cached_score, all_cached_correct = self.eval_cached(model)
-        percent_correct = all_cached_correct / self.num_cached_evals
-        
-        logging.info('eval finished on cached, %f, %d, %s', percent_correct, all_cached_score, str(datetime.now() - start))
-        if percent_correct < self.threshold_cached:
-            return all_cached_score, 'cached'
+        total_score = 0
 
-        logging.info('beginning disk eval')
+        logging.info('beginning attack to score')
         start = datetime.now()
-        all_disk_score, all_disk_correct = self.eval_disk(model)
-        percent_correct = all_disk_correct / (self.num_disk_evals - self.num_cached_evals)
-        cached_disk_score = all_cached_score + all_disk_score + LEVEL_BONUS
-        logging.info('eval finished on disk, %f, %d, %s', percent_correct, cached_disk_score, str(datetime.now() - start))
-        if percent_correct < self.threshold_disk:
-            return all_cached_score + all_disk_score, 'disk'
+        def eval_function(act, record):
+            return int(act) == 1
+        att_score = self.eval_model(model, self.attack_to_score_dir, eval_function, self.default_count)
+        total_score += att_score
+        logging.info('Finished attack to score with %d score, total: %d,  in %s', att_score, total_score, str(datetime.now() - start))
+
+
+        logging.info('beginning attack to lose')
+        start = datetime.now()
+        def eval_function(act, record):
+            return int(act) != 1
+        no_att_score = self.eval_model(model, self.attack_to_score_dir, eval_function, self.default_count)
+        total_score += no_att_score
+        logging.info('Finished attack to lose with %d score, total: %d,  in %s', no_att_score, total_score, str(datetime.now() - start))
+
+        if not (att_score > 0 and no_att_score > 0):
+            return total_score, 'training'
+
+        logging.info('beginning do not lose')
+        start = datetime.now()
+        def eval_function(act, record):
+            return int(act) != int(record)
+        score = self.eval_model(model, self.attack_to_score_dir, eval_function, self.default_count)
+        total_score += score
+        logging.info('Finished do not lose with %d score, total: %d,  in %s', score, total_score, str(datetime.now() - start))
 
         logging.info('beginning game eval')
         start = datetime.now()
         fitness, feature = game_fitness_feature_fn(task.score_strategy, task.stop_after, task.game,
                                                    run_name, model, self.env_maker)
         fitness = fitness.item() if torch.is_tensor(fitness) else fitness
-        final_score = fitness * self.real_world_emphasis + cached_disk_score + 5 * LEVEL_BONUS
-        logging.info('eval finished on real game %d = %d * %d, disk: %d, cached: %d, time: %s', final_score, fitness, self.real_world_emphasis, all_disk_score, all_cached_score, str(datetime.now() - start))
-        return final_score, feature
+        total_score = total_score + fitness
+        logging.info('eval finished on real game, total: %d, fitness: %s, feature: %s, time: %s', total_score, str(fitness), str(feature), str(datetime.now() - start))
+        return total_score, feature
 
 
-    def eval_cached(self, model):
-        all_score = 0
-        all_correct = 0
-        for params, screen in self.cached_dp:
-            score, correct = score_action_on_screen(screen, model, params)
-            all_score += score
-            all_correct += correct
-        return all_score, all_correct
+    def eval_model(self, model, dir, eval_function, eval_count):
+        score = 0
+        for i, file in enumerate(dir.glob('*.npy')):
+            if i >= eval_count:
+                return score
+            screen = np.load(str(file))
+            parts = parse_name(file.stem)
+            model_action = select_action_without_random(torch.tensor(screen), model)
+            score += eval_function(model_action, parts['act'])
+        return score
 
-    def eval_disk(self, model):
-        all_score = 0
-        all_correct = 0
-        files = saves_numpy.glob('*.npy')
-        for file_ in islice(files, self.num_cached_evals, self.num_disk_evals):
-            params = self.parse_file_name(file_.stem)
-            screen = np.load(str(file_))
-            score, correct = score_action_on_screen(screen, model, params)
-            all_score += score
-            all_correct += correct
-        return all_score, all_correct
-
-
-    def load_cached_saved_evals(self):
-        files = saves_numpy.glob('*.npy')
-        file_cache = []
-        for file_ in islice(files, self.num_cached_evals):
-            file_cache.append(
-                (self.parse_file_name(file_.stem), np.load(str(file_))))
-        return file_cache
-
-    def parse_file_name(self, file_name):
-        name_parts = re.split(r'(c_|_crit_|_rew_|_act_)', file_name)
-        return {
-            'count': name_parts[2],
-            'crit': name_parts[4],
-            'rew': int(name_parts[6]),
-            'act': int(name_parts[8])
-        }
 
     def reset_environments(self):
         del self.env_maker
@@ -103,39 +86,6 @@ class CascadingFitnessEvaluator:
         time.sleep(1)
         self.env_maker = CachingEnvironmentMaker(version=self.gvgai_version)
         logging.info('...reset finished')
-
-
-
-LEVEL_BONUS = 0
-BIG_SUCCESS = 2
-BIG_FAILURE = -2
-def score_action_on_screen(screen, model, params):
-    """
-    :return: tuple: score, right decision
-    """
-    model_action = select_action_without_random(torch.tensor(screen), model)
-    dp_action, dp_type, dp_reward = params['act'], params['crit'], params['rew']
-    assert isinstance(model_action, int)
-    assert isinstance(dp_reward, int)
-    assert isinstance(dp_action, int)
-    #print('dp_type', dp_type, 'dp_action', dp_action, 'model_action', model_action, 'dp_reward', dp_reward)
-    if dp_type == 'win':
-        if model_action == dp_action:
-            return BIG_SUCCESS, 1
-        else:
-            return 0, 0
-    elif dp_type == 'lose':
-        if model_action == dp_action:
-            return BIG_FAILURE, 0
-        else:
-            return 0, 1
-    elif dp_type == 'none' or dp_type == 'samp':
-        if model_action == dp_action:
-            return dp_reward, 1
-        else:
-            return 0, 0
-    else:
-        raise RuntimeError(f'Unknown decision point {dp_type}, {dp_action}, {dp_reward}')
 
 
 
@@ -171,3 +121,20 @@ def game_fitness_feature_fn(score_strategy, stop_after, game, run_name, policy_n
     fitness = scores
     feature_descriptor = '-'.join([str(i) for i in wins])
     return fitness, feature_descriptor
+
+
+def parse_name(file_name):
+    items = dict()
+    parts = file_name.split('_')
+    items['uuid'] = parts[0]
+    items['lvl'] = parts[1]
+    is_name = True
+    name = ''
+    for part in parts[2:]:
+        if is_name:
+            name = part
+            is_name = False
+        else:
+            items[name] = part
+            is_name = True
+    return items

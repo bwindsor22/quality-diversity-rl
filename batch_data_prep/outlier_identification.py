@@ -7,6 +7,7 @@ from batch_data_prep.data_drive import drive, out_dir
 
 
 is_mac = True
+do_hash = True
 
 def mse(imageA, imageB):
     # the 'Mean Squared Error' between the two images is the
@@ -35,34 +36,47 @@ def parse_name(file_name):
             is_name = True
     return items
 
-start = datetime.now()
-files = Path(drive(is_mac=is_mac)).glob('*.npy')
-print('total', len(list(files)))
-imgs = defaultdict(list)
-for i, file_path in enumerate(Path(drive(is_mac=is_mac)).glob('*.npy')):
-    img = np.load(open(str(file_path), 'rb'))
-    end = datetime.now()
-    imgs[hash(img.tostring())].append({'name': file_path.stem, 'path': file_path})
-# imgs = {k: v for k, v in sorted(imgs.items(), key=lambda item: len(item[1]), reverse=True)}
-end = datetime.now()
-print('loaded hashes in', end - start)
-
-
 out_path = Path(out_dir(is_mac=is_mac))
+if not do_hash:
+    out_path = out_path / 'with_dups'
 
 paths = dict()
 for category in ['win', 'lose', 'other']:
     paths[category] = out_path / category
 
+if do_hash:
+    start = datetime.now()
+    files = Path(drive(is_mac=is_mac)).glob('*.npy')
+    print('total', len(list(files)))
+    imgs = defaultdict(list)
+    for i, file_path in enumerate(Path(drive(is_mac=is_mac)).glob('*.npy')):
+        img = np.load(open(str(file_path), 'rb'))
+        end = datetime.now()
+        imgs[hash(img.tostring())].append({'name': file_path.stem, 'path': file_path})
+    # imgs = {k: v for k, v in sorted(imgs.items(), key=lambda item: len(item[1]), reverse=True)}
+    end = datetime.now()
+    print('loaded hashes in', end - start)
 
-for hash_, file_list in imgs.items():
-    first_file = file_list[0]
-    labels = parse_name(first_file['name'])
-    reward = int(float(labels['reward']))
-    if reward not in [0, -10]:
-        act_cat = labels['act'] if labels['act'] == '1' else 'other'
-        specific_out_path = paths[labels['crit']] / labels['reward'] / act_cat
-        if not specific_out_path.exists():
-            specific_out_path.mkdir(parents=True)
-        copyfile(str(first_file['path']), str(specific_out_path / first_file['path'].stem) + '.npy')
 
+    for hash_, file_list in imgs.items():
+        first_file = file_list[0]
+        labels = parse_name(first_file['name'])
+        reward = int(float(labels['reward']))
+        if reward not in [0, -10]:
+            act_cat = labels['act'] if labels['act'] == '1' else 'other'
+            specific_out_path = paths[labels['crit']] / labels['reward'] / act_cat
+            if not specific_out_path.exists():
+                specific_out_path.mkdir(parents=True)
+            copyfile(str(first_file['path']), str(specific_out_path / first_file['path'].stem) + '.npy')
+
+else:
+    for file_path in Path(drive(is_mac=is_mac)).glob('*.npy'):
+        first_file = {'name': file_path.stem, 'path': file_path}
+        labels = parse_name(first_file['name'])
+        reward = int(float(labels['reward']))
+        if reward not in [0, -10]:
+            act_cat = labels['act'] if labels['act'] == '1' else 'other'
+            specific_out_path = paths[labels['crit']] / labels['reward'] / act_cat
+            if not specific_out_path.exists():
+                specific_out_path.mkdir(parents=True)
+            copyfile(str(first_file['path']), str(specific_out_path / first_file['path'].stem) + '.npy')
