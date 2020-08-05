@@ -35,7 +35,7 @@ class CMAES:
 
         self.data_queue.append(state_flattened)
         logging.info('added to cmame queue, %d for %s',
-                     len(self.data_queue))
+                     len(self.data_queue), feature_descriptor)
 
         performance = performance.item() if torch.is_tensor(performance) else performance
         # cma is set to minimize, so we invert
