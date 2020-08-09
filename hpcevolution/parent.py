@@ -31,7 +31,7 @@ class Parent:
         self.evaluated_so_far = 0
         self.count_loops = 0
         #self.total_to_evaluate = num_iter
-        self.total_to_evaluate = 1500
+        self.total_to_evaluate = 3000
         self.results_per_generation = 400
         self.work_per_generation = 0
         self.next_generation = True
