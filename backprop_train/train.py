@@ -5,7 +5,7 @@ import torch.nn as nn
 
 from pathlib import Path
 
-from evolution.initialization_utils import get_initial_model
+from evolution.initialization_utils import get_simple_net
 from models.evaluate_model import select_action_without_random
 from models.caching_environment_maker import GVGAI_RUBEN
 
@@ -87,7 +87,7 @@ game = 'gvgai-zelda'
 
 
 
-policy_net, init_model = get_initial_model(gvgai_version, game)
+policy_net, init_model = get_simple_net()
 policy_net.__init__(*init_model)
 
 

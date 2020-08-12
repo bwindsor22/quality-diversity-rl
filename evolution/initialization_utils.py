@@ -1,4 +1,5 @@
 import gym
+import torch
 
 from environment_utils.utils import find_device
 from models.caching_environment_maker import CachingEnvironmentMaker
@@ -28,5 +29,16 @@ def get_initial_policy_net(level='gvgai-zelda-lvl0-v0', LINEAR_INPUT_SCALAR=8,
     n_actions = env.action_space.n
 
     init_model = [screen_height, screen_width, LINEAR_INPUT_SCALAR, KERNEL, n_actions]
+    policy_net = BigNet(*init_model).to(device)
+    return policy_net, init_model
+
+def get_simple_net():
+    screen_height = 90
+    screen_width = 130
+    LINEAR_INPUT_SCALAR = 8
+    KERNEL = 5
+    n_actions = 6
+    init_model = [screen_height, screen_width, LINEAR_INPUT_SCALAR, KERNEL, n_actions]
+    device = torch.device("cpu")
     policy_net = BigNet(*init_model).to(device)
     return policy_net, init_model
