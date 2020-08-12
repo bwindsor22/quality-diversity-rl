@@ -23,13 +23,14 @@ class CascadingFitnessEvaluator:
         # self.attack_to_score_dir = saves_formatted / 'other' / '2.0' / '1'
         # self.attack_to_lose_dir = saves_formatted / 'lose' / '-1.0' / '1'
         # self.do_not_lose_dir = saves_formatted / 'lose' / '-1.0' / 'other'
-
         # self.do_not_lose_dir = '*crit_lose*.npy'
 
         self.attack_to_score = '*act_1_reward_2.0_crit_other*.npy' # 553
         self.attack_to_lose = '*act_1_*crit_lose*.npy' # 3,542
         self.reward_1 = '*reward_1.0_crit_other*.npy' # 1,682
         self.do_win = '*reward_1.0_crit_win*.npy' # 8,798
+
+        self.threshold_score = 31000
 
 
     def run_task(self, run_name, task, model):
@@ -61,7 +62,7 @@ class CascadingFitnessEvaluator:
             return int(act) == int(record)
         rew_1_score = self.eval_model(model, self.reward_1, eval_function, self.default_count)
         total_score += rew_1_score
-        logging.info('Finished do not lose with %d score, total: %d,  in %s', rew_1_score, total_score, str(datetime.now() - start))
+        logging.info('Finished reward_1 with %d score, total: %d,  in %s', rew_1_score, total_score, str(datetime.now() - start))
 
         logging.info('beginning do win')
         start = datetime.now()
@@ -71,7 +72,7 @@ class CascadingFitnessEvaluator:
         total_score += win_score
         logging.info('Finished do win with %d score, total: %d,  in %s', win_score, total_score, str(datetime.now() - start))
 
-        if not (rew_1_score > 0 and win_score > 0):
+        if total_score < self.threshold_score or not (rew_1_score > 0 and win_score > 0):
             return total_score, 'rew_1_win'
 
 
@@ -80,7 +81,7 @@ class CascadingFitnessEvaluator:
         fitness, feature = game_fitness_feature_fn(task.score_strategy, task.stop_after, task.game,
                                                    run_name, model, self.env_maker)
         fitness = fitness.item() if torch.is_tensor(fitness) else fitness
-        total_score = total_score + fitness
+        total_score = total_score + fitness * 100
         logging.info('eval finished on real game, total: %d, fitness: %s, feature: %s, time: %s', total_score, str(fitness), str(feature), str(datetime.now() - start))
         return total_score, feature
 

@@ -1,17 +1,9 @@
 import math
 import random
 from itertools import count
-from datetime import datetime
 
 import gym
-import matplotlib
-import matplotlib.pyplot as plt
-import numpy as np
 import torch
-import torch.nn.functional as F
-import torch.optim as optim
-import torchvision.transforms as T
-from IPython import display
 
 from models.dqn import DQN
 from models.gvg_utils import get_screen
@@ -143,9 +135,10 @@ if __name__ == '__main__':
 
         _, _, screen_height, screen_width = init_screen.shape
         n_actions = env.action_space.n
-
+        print(screen_height, screen_width, LINEAR_INPUT_SCALAR)
         init_model = [screen_height, screen_width, LINEAR_INPUT_SCALAR, KERNEL, n_actions]
         policy_net = DQN(*init_model).to(device)
+        print(sum(p.numel() for p in policy_net.parameters() if p.requires_grad))
         return policy_net, init_model
     net, model = get_initial_policy_net()
 

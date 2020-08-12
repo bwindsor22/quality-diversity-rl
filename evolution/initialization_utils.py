@@ -2,7 +2,7 @@ import gym
 
 from environment_utils.utils import find_device
 from models.caching_environment_maker import CachingEnvironmentMaker
-from models.dqn import DQN
+from models.dqn import DQN, BigNet
 from models.gvg_utils import get_screen
 
 
@@ -28,5 +28,5 @@ def get_initial_policy_net(level='gvgai-zelda-lvl0-v0', LINEAR_INPUT_SCALAR=8,
     n_actions = env.action_space.n
 
     init_model = [screen_height, screen_width, LINEAR_INPUT_SCALAR, KERNEL, n_actions]
-    policy_net = DQN(*init_model).to(device)
+    policy_net = BigNet(*init_model).to(device)
     return policy_net, init_model
