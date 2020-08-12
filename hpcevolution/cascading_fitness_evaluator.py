@@ -100,6 +100,7 @@ class CascadingFitnessEvaluator:
             model_action = select_action_without_random(torch.tensor(screen), model)
             score += eval_function(model_action, parts['act'])
             i += 1
+        logging.info('dir %s, i %d', str(dir), i)
         return score
 
 
