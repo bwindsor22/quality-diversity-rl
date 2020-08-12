@@ -9,10 +9,6 @@ from evolution.initialization_utils import get_simple_net
 from models.evaluate_model import select_action_without_random
 from models.caching_environment_maker import GVGAI_RUBEN
 
-data = []
-
-labels = [True] * len(data)
-
 
 def attack_to_score(act, record):
     return int(act) == 1
@@ -96,41 +92,61 @@ num_epochs = 50
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(policy_net.parameters(), lr=0.001, momentum=0.9)
 
-all_outputs = []
 all_screens = []
 all_labels = []
 
-for data in datasets:
-    dir = data['dir']
-    eval_function = data['func']
-    i = 0
-    for file in saves_numpy.glob(dir):
-        parts = parse_name(file.stem)
-        screen = np.load(str(file))
-        # output = eval_function(model_action, parts['act'])
-        # all_screens.append(torch.tensor(screen))
-        all_screens.append(screen[0])
-        all_labels.append(int(parts['act']))
-        i += 1
-    print(i, 'for dir', dir)
 
 for epoch in range(num_epochs):
     running_loss = 0
     optimizer.zero_grad()
 
-    screens_f = torch.tensor(all_screens)
-    model_actions = policy_net(screens_f)
+    for data in datasets:
+        dir = data['dir']
+        eval_function = data['func']
+        i = 0
+        for file in saves_numpy.glob(dir):
+            parts = parse_name(file.stem)
+            screen = np.load(str(file))
+            # output = eval_function(model_action, parts['act'])
+            # all_screens.append(torch.tensor(screen))
+            all_screens.append(screen[0])
+            all_labels.append(int(parts['act']))
+            i += 1
 
-    # out_f = one_hot_embedding(all_outputs, 10)
-    label_f = torch.tensor(all_labels)
-    print('shapes', model_actions.shape, label_f.shape)
-    loss = criterion(model_actions, label_f)
-    loss.backward()
-    optimizer.step()
-    print('[{}] loss: {}'.format(epoch + 1, loss.item()))
-    # all_screens.clear()
-    # all_outputs.clear()
-    # all_labels.clear()
+            if i % 3 == 0:
+
+                screens_f = torch.tensor(all_screens)
+                model_actions = policy_net(screens_f)
+
+                # out_f = one_hot_embedding(all_outputs, 10)
+                label_f = torch.tensor(all_labels)
+                # print('shapes', model_actions.shape, label_f.shape)
+                loss = criterion(model_actions, label_f)
+                loss.backward()
+                optimizer.step()
+                print('[{} {}] loss: {}'.format(epoch + 1, i, loss.item()))
+
+                all_screens.clear()
+                all_labels.clear()
+
+
+        if len(all_screens):
+            screens_f = torch.tensor(all_screens)
+            model_actions = policy_net(screens_f)
+
+            # out_f = one_hot_embedding(all_outputs, 10)
+            label_f = torch.tensor(all_labels)
+            # print('shapes', model_actions.shape, label_f.shape)
+            loss = criterion(model_actions, label_f)
+            loss.backward()
+            optimizer.step()
+            print('[{}] loss: {}'.format(epoch + 1, i, loss.item()))
+
+            all_screens.clear()
+            all_labels.clear()
+
+        print(i, 'for dir', dir)
+
 
 PATH = './policy_net.pth'
 torch.save(policy_net.state_dict(), PATH)
