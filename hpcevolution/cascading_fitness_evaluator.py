@@ -19,7 +19,6 @@ class CascadingFitnessEvaluator:
         self.gvgai_version = gvgai_version
         self.env_maker = CachingEnvironmentMaker(version=gvgai_version)
         self.default_count = 50000
-
         # self.attack_to_score_dir = saves_formatted / 'other' / '2.0' / '1'
         # self.attack_to_lose_dir = saves_formatted / 'lose' / '-1.0' / '1'
         # self.do_not_lose_dir = saves_formatted / 'lose' / '-1.0' / 'other'

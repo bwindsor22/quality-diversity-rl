@@ -40,7 +40,7 @@ class BigNet(nn.Module):
     """
     ~90K params
     """
-    def __init__(self, h, w, not_used, not_used2, outputs):
+    def __init__(self, h, w, linear_input_scalar, kernel_size, outputs):
         super(BigNet, self).__init__()
         kernel_size = 5
         self.conv1 = nn.Conv2d(3, 4, kernel_size)
