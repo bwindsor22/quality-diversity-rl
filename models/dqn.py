@@ -7,7 +7,7 @@ class DQN(nn.Module):
     def __init__(self, h, w, linear_input_scalar, kernel_size, outputs):
         super(DQN, self).__init__()
         
-        self.atari = False
+        self.atari = True
         
         if self.atari == False:
         

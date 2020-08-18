@@ -18,10 +18,10 @@ class HPCMapElites(MapElites):
     def is_dominant(self,a,b):
         is_not_less_than = True
         has_one_better_objective = False
-        for j in range(len(a[1])):
-            if a[1][j] < b[1][j]:
+        for j in range(len(a[4])):
+            if a[4][j] < b[4][j]:
                 is_not_less_than = False
-            if a[1][j] > b[1][j]:
+            if a[4][j] > b[4][j]:
                 has_one_better_objective = True
         
         if has_one_better_objective == True and is_not_less_than == True:
@@ -77,13 +77,13 @@ class HPCMapElites(MapElites):
             scores = []
             j = 0            
             #Get number of scores in fitness function
-            for k in range(len(front[0][1])):
+            for k in range(len(front[0][4])):
                 temp = {}
                 scores.append(temp)
             #Uniquely identify elements in fronts based on front index and position in front
             for p in front:
-                for k in range(len(p[1])):
-                    scores[k][str(i) + "-" + str(j)] = p[1][k]
+                for k in range(len(p[4])):
+                    scores[k][str(i) + "-" + str(j)] = p[4][k]
                 j += 1
             crowding_dist = {}
             crowding_dists_along_objectives = []
@@ -172,7 +172,7 @@ class HPCMapElites(MapElites):
         self.population = new_population
         
                 
-    def update_result(self, network, feature, fitness, num_levels):
+    def update_result(self, network, feature, fitness, objectives):
         #logging.info('Updating feature {}, performance {}'.format(feature, fitness))
         '''
         if self.cmame:
@@ -185,7 +185,7 @@ class HPCMapElites(MapElites):
         '''
         #Replace or add?
         #self.population = []
-        self.population.append((network,fitness,feature,num_levels))
+        self.population.append((network,fitness,feature,objectives))
         
         #Organize by rank
         #Find Pareto Front

@@ -4,6 +4,7 @@ import torch
 import pickle
 from pathlib import Path
 import logging
+import random
 
 from evolution.hpc_map_elites import HPCMapElites
 from evolution.initialization_utils import get_initial_model
@@ -38,8 +39,8 @@ class Parent:
         pop_size = 400
         policy_net, init_model = get_initial_model(gvgai_version, game)
         population = []
-        self.num_levels = 2
-        self.objectives = [[5],[7]]
+        self.num_levels = 10
+        self.objectives = [[5],[7],[4]]
         
         #population.append(policy_net)
         
@@ -85,6 +86,9 @@ class Parent:
             if self.count_loops % 200 == 0:
                 i = 0
                 logging.info('INTERMEDIATE PERFORMANCES')
+                logging.info("OBJECTIVES")
+                for objective in self.objectives:
+                    logging.info(objective[0])
                 for solution in self.map_elites.population:
                     logging.info(str(solution[2]))
                     logging.info(str(solution[1]))
@@ -145,22 +149,29 @@ class Parent:
             self.count_loops += 1
             
             if self.evaluated_so_far % 100 == 0 and self.evaluated_so_far != 0:
+       	        logging.info("OBJECTIVES")
+                for objective in self.objectives:
+                    logging.info(objective[0])
+
                 logging.info("Intermediate Results : SAVING MODELS")
                 j = 0
                 for solution in self.map_elites.population:
                     logging.info(solution[2])
                     logging.info(solution[1])
                     logging.info("")
-                    torch.save(solution[0],'/scratch/bos221/qd-branches/nsgaii-dynamic-objectives/quality-diversity-rl/saved_models/torch_model_{}_{}'.format(solution[2],str(j)))
+                    torch.save(solution[0],'/scratch/bos221/qd-branches/nsgaii-swapping-objectives/quality-diversity-rl/saved_models/torch_model_{}_{}'.format(solution[2],str(j)))
                     j +=1
 
         logging.info('Logging final results')
         #logging.info(str(self.map_elites.population))
+        logging.info("OBJECTIVES")
+        for objective in self.objectives:
+            logging.info(objective[0])
         for solution in self.map_elites.population:
             logging.info(solution[2])
             logging.info(solution[1])
             logging.info("")
-            torch.save(solution[0],'/scratch/bos221/qd-branches/nsgaii-multi-level/quality-diversity-rl/saved_models/torch_model_{}'.format(solution[2]))
+            torch.save(solution[0],'/scratch/bos221/qd-branches/nsgaii-swapping-objectives/quality-diversity-rl/saved_models/torch_model_{}'.format(solution[2]))
         i = 0
         for front in self.fronts:
             logging.info("front: " + str(i)) 
@@ -182,8 +193,7 @@ class Parent:
             try:
                 #results.append((pickle.load(file.open('rb')), file))
                 temp = pickle.load(file.open('rb'))
-                if temp.num_levels == self.num_levels:
-                    results.append(temp)
+                results.append(temp)
                 file.unlink()
             except Exception as e:
                 logging.info('failed to load result %s', str(e))
@@ -191,7 +201,7 @@ class Parent:
         return results
 
     def update_map_elites_results(self, result: Result):
-        self.map_elites.update_result(result.network, result.feature, result.fitness,result.num_levels)
+        self.map_elites.update_result(result.network, result.feature, result.fitness,result.objectives)
   
 
     #def reevaluate_population(self):
@@ -202,41 +212,75 @@ class Parent:
            #write work for available child           
 
     def update_objectives(self):
-       self.num_levels +=1
-       self.objectives[0].append(objectives[1][0])
-       self.objectives[1][0] = self.levels[self.num_levels - 1]
+       #self.num_levels +=1
+       #self.objectives[0].append(objectives[1][0])
+       #self.objectives[1][0] = self.levels[self.num_levels - 1]
        #self.reevaluate_population()
+       #Check if either two levels together can be combined or if levels are too be swapped out
 
+       unselected_levels = list(self.levels)
+
+       self.objectives[0][0] = unselected_levels[random.randint(0,len(unselected_levels)-1)]
+       unselected_levels.remove(self.objectives[0][0])
+       self.objectives[1][0] = unselected_levels[random.randint(0,len(unselected_levels)-1)]
+       unselected_levels.remove(self.objectives[1][0])
+       self.objectives[2][0] = unselected_levels[random.randint(0,len(unselected_levels)-1)]
+       unselected_levels.remove(self.objectives[2][0])
 
     def check_objectives(self):
         #Alternatively threshold of around 10 should work as well
 
-        found_winning_agent = False
-        won_all_levels = ""
+        #found_winning_agent = False
+        #won_all_levels = ""
 
-        for i in range(0,self.num_levels):
-            won_all_levels += "1-1"
+        #for i in range(0,self.num_levels):
+            #won_all_levels += "1-1"
 
-        for solution in self.map_elites.population:
-            if solution[2] == won_all_levels:
-                found_winning_agent = True
-                break
+        #for solution in self.map_elites.population:
+            #if solution[1] == won_all_levels:
+                #found_winning_agent = True
+                #break
         
-        if found_winning_agent == True:
-            self.update_objectives()
+        #if found_winning_agent == True:
+            #self.update_objectives()
+            #logging.info('Found Winning Solution')
 
+        if (self.evaluated_so_far + 1) % 100 == 0:
+            self.update_objectives()
 
 
     def update_population(self):
 
         #Remove non-updated models from population
-        filtered_population = []
+        #filtered_population = []
+        #for solution in self.map_elites.population:
+            
+            #if solution[3] == self.num_levels:
+                #filtered_population.append(solution)
+
+        #self.map_elites.population = filtered_population
+        indices = []
+        for objective in self.objectives:
+            indices.append(self.levels.index(objective[0]))
+        
+        augmented_population = []
+
         for solution in self.map_elites.population:
-            if solution[3] == self.num_levels:
-                filtered_population.append(solution)
+            temp = []
+            for index in indices:
+                temp.append(solution[1][index])
+                
+            if len(solution) <= 4:
+                solution = solution + (temp,)
+            else:
+                solution = list(solution)
+                solution.append(temp)
+                solution = tuple(solution)
 
-        self.map_elites.population = filtered_population
+            augmented_population.append(solution)
 
+        self.map_elites.population = augmented_population
+            
 
         fronts = self.map_elites.non_dominated_sort()
         self.fronts = fronts
