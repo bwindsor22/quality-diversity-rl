@@ -39,7 +39,7 @@ class Parent:
         policy_net, init_model = get_initial_model(gvgai_version, game)
         population = []
         self.num_levels = 2
-        self.objectives = [[5],[7]]
+        self.objectives = [[7],[8]]
         
         #population.append(policy_net)
         
@@ -59,7 +59,8 @@ class Parent:
         self.RESULTS_DIR.mkdir(exist_ok=True, parents=True)
         self.fronts = []
         self.crowding_dists = []
-        self.levels = [5,7,4,8,9,3,1,0,2,6]
+        self.levels = [7,8,4,5,9,3,1,0,2,6]
+        #self.levels = [4,3,0,2,1]
 
         # ready to go
         self.map_elites = HPCMapElites(policy_net,
@@ -143,6 +144,8 @@ class Parent:
             logging.info('sleeping %d', SLEEP_TIME)
             time.sleep(SLEEP_TIME)
             self.count_loops += 1
+            if self.num_levels == 6:
+                break
             
             if self.evaluated_so_far % 100 == 0 and self.evaluated_so_far != 0:
                 logging.info("Intermediate Results : SAVING MODELS")
