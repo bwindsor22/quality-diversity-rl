@@ -39,7 +39,7 @@ def fitness_feature_fn(score_strategy, stop_after, game, run_name, policy_net, e
         for i in range(len(objective)):
             levels.append(objective[i])
 
-
+    logging.info(levels)
     #for lvl in range(num_levels):
     for lvl in levels:
         logging.debug('Running %s', f'{game}-lvl{lvl}-v0')

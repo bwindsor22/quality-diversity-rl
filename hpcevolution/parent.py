@@ -220,9 +220,9 @@ class Parent:
         return unselected_levels
 
 
-    def update_objectives(won_all_levels,self):
+    def update_objectives(found_winning_agent,self):
 
-       if won_all_levels == True:
+       if found_winning_agent == True:
            unselected_levels = self.find_unselected_levels()
            self.num_levels +=1
            
@@ -235,12 +235,15 @@ class Parent:
        
 
        
-       if self.evaluated_so_far % 50 == True and won_all_levels == False:
-           epsilon = self.map_elites.calculate_epsilon()       
+       if (self.evaluated_so_far % 50 == True and self.evaluated_so_far != 0) and won_all_levels == False:
+           epsilon = self.map_elites.calculate_epsilon(len(self.objectives))       
            unselected_levels = self.find_unselected_levels()
            for i in range(len(epsilon)):
               if abs(epsilon[i] - self.prev_epsilon[i]) < 0.10:
-                 self.objectives[i][random.randint(0,len(objectives[i])-1)] = unselected_levels[random.randint(0,len(unselected_levels)-1)] 
+                 if len(self.objectives[i]) <= 1:
+                    self.objectives[i][random.randint(0,len(objectives[i])-1)] = unselected_levels[random.randint(0,len(unselected_levels)-1)] 
+                 else:
+                    self.objectives[i][0] = unselected_levels[random.randint(0,len(unselected_levels)-1)]
                  self.prev_epsilon = epsilon
                  break
            self.prev_epsilon = epsilon
@@ -255,17 +258,17 @@ class Parent:
         for i in range(0,self.num_levels):
             won_all_levels += "1-1"
 
-        #for solution in self.map_elites.population:
-            #if solution[1] == won_all_levels:
-                #found_winning_agent = True
-                #break
+        for solution in self.map_elites.population:
+            if solution[2] == won_all_levels:
+                found_winning_agent = True
+                break
         
         #if found_winning_agent == True:
             #self.update_objectives()
             #logging.info('Found Winning Solution')
 
-        if (self.evaluated_so_far + 1) % 100 == 0:
-            self.update_objectives()
+        #if (self.evaluated_so_far + 1) % 50 == 0:
+        self.update_objectives(found_winning_agent)
 
 
     def update_population(self):
@@ -273,10 +276,18 @@ class Parent:
         #Remove non-updated models from population
         filtered_population = []
         for solution in self.map_elites.population:
-            filter_solution = False            
+            filter_solution = False
+            logging.info(solution[1])
+            logging.info(solution[2])
+            logging.info(solution[3])            
             for i in range(len(self.objectives)):
                 if len(self.objectives[i]) != len(solution[3][i]):
                     filter_solution = True
+                else:
+                    for objective in self.objectives:
+                        for j in range(len(objective)):
+                            if objective[j] != solution[3][j]:
+                               filter_solution = True
 
             if filter_solution == False:
                 filtered_population.append(solution)
@@ -284,6 +295,7 @@ class Parent:
         self.map_elites.population = filtered_population
         fronts = self.map_elites.non_dominated_sort()
         self.fronts = fronts
+        logging.info(len(fronts))
         crowding_dists = self.map_elites.crowding_distance(fronts)
         self.crowding_dists = crowding_dists
         self.map_elites.select_new_population(fronts, crowding_dists)
