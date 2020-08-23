@@ -28,12 +28,18 @@ def fitness_feature_fn(score_strategy, stop_after, game, run_name, policy_net, e
     """
     Calculate fitess and feature descriptor simultaneously
     """
-    scores = []
+    scores = [0,0]
     wins = []
     keys_found = 0
     #num_levels = 10 if game == 'gvgai-dzelda' else 5
     #levels = [4,5,7,8,3,9]
-    levels = [5,7,4,8,9,3,1,0,2,6]
+    #levels = [5,7,4,8,9,3,1,0,2,6]
+    levels = []
+    for objective in objectives:
+        for i in range(len(objective)):
+            levels.append(objective[i])
+
+
     #for lvl in range(num_levels):
     for lvl in levels:
         logging.debug('Running %s', f'{game}-lvl{lvl}-v0')
@@ -42,8 +48,10 @@ def fitness_feature_fn(score_strategy, stop_after, game, run_name, policy_net, e
                                   stop_after=stop_after,
                                   env_maker=env_maker)
         #scores = combine_scores(scores, score, win, score_strategy)
-        scores.append(score)
-
+        if lvl in objectives[0]:
+            scores[0] += score
+        else:
+            scores[1] += score
         wins.append(win)
         wins.append(key_found)
 

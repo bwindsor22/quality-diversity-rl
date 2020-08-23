@@ -18,10 +18,10 @@ class HPCMapElites(MapElites):
     def is_dominant(self,a,b):
         is_not_less_than = True
         has_one_better_objective = False
-        for j in range(len(a[4])):
-            if a[4][j] < b[4][j]:
+        for j in range(len(a[1])):
+            if a[1][j] < b[1][j]:
                 is_not_less_than = False
-            if a[4][j] > b[4][j]:
+            if a[1][j] > b[1][j]:
                 has_one_better_objective = True
         
         if has_one_better_objective == True and is_not_less_than == True:
@@ -77,13 +77,13 @@ class HPCMapElites(MapElites):
             scores = []
             j = 0            
             #Get number of scores in fitness function
-            for k in range(len(front[0][4])):
+            for k in range(len(front[0][1])):
                 temp = {}
                 scores.append(temp)
             #Uniquely identify elements in fronts based on front index and position in front
             for p in front:
-                for k in range(len(p[4])):
-                    scores[k][str(i) + "-" + str(j)] = p[4][k]
+                for k in range(len(p[1])):
+                    scores[k][str(i) + "-" + str(j)] = p[1][k]
                 j += 1
             crowding_dist = {}
             crowding_dists_along_objectives = []
@@ -170,6 +170,22 @@ class HPCMapElites(MapElites):
             new_population.append(max_solution)
         
         self.population = new_population
+
+    def calculate_epsilon(num_objectives,self):
+
+        epsilon = []
+
+        for i in range(len(num_objectives)):
+            epsilon.append(0)
+        for solution in self.population:
+            for i in range(len(solution[1])):
+                epsilon[i] += solution[1][i]
+
+        for i in range(len(epsilon)):
+            epsilon[i] = epsilon[i]/400
+
+        return epsilon
+            
         
                 
     def update_result(self, network, feature, fitness, objectives):

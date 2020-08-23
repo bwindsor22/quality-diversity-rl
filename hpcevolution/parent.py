@@ -39,9 +39,9 @@ class Parent:
         pop_size = 400
         policy_net, init_model = get_initial_model(gvgai_version, game)
         population = []
-        self.num_levels = 10
-        self.objectives = [[5],[7],[4]]
-        
+        self.num_levels = 2
+        self.objectives = [[5],[7]]
+        self.prev_epsilon = [0,0]
         #population.append(policy_net)
         
         #for i in range(1,pop_size):
@@ -211,30 +211,49 @@ class Parent:
            #find available children
            #write work for available child           
 
-    def update_objectives(self):
-       #self.num_levels +=1
-       #self.objectives[0].append(objectives[1][0])
-       #self.objectives[1][0] = self.levels[self.num_levels - 1]
-       #self.reevaluate_population()
-       #Check if either two levels together can be combined or if levels are too be swapped out
+    def find_unselected_levels(self):
+        unselected_levels = list(self.levels)
+        for objective in self.objectives:
+            for lvl in objective:
+                unselected_levels = unselected_levels.remove(lvl)
 
-       unselected_levels = list(self.levels)
+        return unselected_levels
 
-       self.objectives[0][0] = unselected_levels[random.randint(0,len(unselected_levels)-1)]
-       unselected_levels.remove(self.objectives[0][0])
-       self.objectives[1][0] = unselected_levels[random.randint(0,len(unselected_levels)-1)]
-       unselected_levels.remove(self.objectives[1][0])
-       self.objectives[2][0] = unselected_levels[random.randint(0,len(unselected_levels)-1)]
-       unselected_levels.remove(self.objectives[2][0])
+
+    def update_objectives(won_all_levels,self):
+
+       if won_all_levels == True:
+           unselected_levels = self.find_unselected_levels()
+           self.num_levels +=1
+           
+           self.objectives[0].append(objectives[1][0])
+           self.objectives[1][0] = unselected_levels[random.randint(0,len(unselected_levels)-1)]
+           
+           #self.reevaluate_population()
+           #Check if either two levels together can be combined or if levels are too be swapped out
+
+       
+
+       
+       if self.evaluated_so_far % 50 == True and won_all_levels == False:
+           epsilon = self.map_elites.calculate_epsilon()       
+           unselected_levels = self.find_unselected_levels()
+           for i in range(len(epsilon)):
+              if abs(epsilon[i] - self.prev_epsilon[i]) < 0.10:
+                 self.objectives[i][random.randint(0,len(objectives[i])-1)] = unselected_levels[random.randint(0,len(unselected_levels)-1)] 
+                 self.prev_epsilon = epsilon
+                 break
+           self.prev_epsilon = epsilon
+
 
     def check_objectives(self):
         #Alternatively threshold of around 10 should work as well
 
-        #found_winning_agent = False
-        #won_all_levels = ""
+        found_winning_agent = False
+        won_all_levels = ""
 
-        #for i in range(0,self.num_levels):
-            #won_all_levels += "1-1"
+        for i in range(0,self.num_levels):
+            won_all_levels += "1-1"
 
         #for solution in self.map_elites.population:
             #if solution[1] == won_all_levels:
@@ -252,36 +271,17 @@ class Parent:
     def update_population(self):
 
         #Remove non-updated models from population
-        #filtered_population = []
-        #for solution in self.map_elites.population:
-            
-            #if solution[3] == self.num_levels:
-                #filtered_population.append(solution)
-
-        #self.map_elites.population = filtered_population
-        indices = []
-        for objective in self.objectives:
-            indices.append(self.levels.index(objective[0]))
-        
-        augmented_population = []
-
+        filtered_population = []
         for solution in self.map_elites.population:
-            temp = []
-            for index in indices:
-                temp.append(solution[1][index])
-                
-            if len(solution) <= 4:
-                solution = solution + (temp,)
-            else:
-                solution = list(solution)
-                solution.append(temp)
-                solution = tuple(solution)
+            filter_solution = False            
+            for i in range(len(self.objectives)):
+                if len(self.objectives[i]) != len(solution[3][i]):
+                    filter_solution = True
 
-            augmented_population.append(solution)
+            if filter_solution == False:
+                filtered_population.append(solution)
 
-        self.map_elites.population = augmented_population
-            
-
+        self.map_elites.population = filtered_population
         fronts = self.map_elites.non_dominated_sort()
         self.fronts = fronts
         crowding_dists = self.map_elites.crowding_distance(fronts)
