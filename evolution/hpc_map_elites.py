@@ -171,7 +171,7 @@ class HPCMapElites(MapElites):
         
         self.population = new_population
 
-    def calculate_epsilon(num_objectives,self):
+    def calculate_epsilon(self,num_objectives):
 
         epsilon = []
 

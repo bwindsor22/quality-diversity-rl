@@ -220,25 +220,22 @@ class Parent:
         return unselected_levels
 
 
-    def update_objectives(found_winning_agent,self):
+    def update_objectives(self,found_winning_agent):
 
-       if found_winning_agent == True:
-           unselected_levels = self.find_unselected_levels()
-           self.num_levels +=1
+        if found_winning_agent == True:
+            unselected_levels = self.find_unselected_levels()
+            self.num_levels +=1
            
-           self.objectives[0].append(objectives[1][0])
-           self.objectives[1][0] = unselected_levels[random.randint(0,len(unselected_levels)-1)]
+            self.objectives[0].append(objectives[1][0])
+            self.objectives[1][0] = unselected_levels[random.randint(0,len(unselected_levels)-1)]
            
-           #self.reevaluate_population()
-           #Check if either two levels together can be combined or if levels are too be swapped out
+            #self.reevaluate_population()
+            #Check if either two levels together can be combined or if levels are too be swapped out
 
-       
-
-       
-       if (self.evaluated_so_far % 50 == True and self.evaluated_so_far != 0) and won_all_levels == False:
-           epsilon = self.map_elites.calculate_epsilon(len(self.objectives))       
-           unselected_levels = self.find_unselected_levels()
-           for i in range(len(epsilon)):
+        if ((self.evaluated_so_far + 1) % 50 == 0 and found_winning_agent == False):
+            epsilon = self.map_elites.calculate_epsilon(len(self.objectives))       
+            unselected_levels = self.find_unselected_levels()
+            for i in range(len(epsilon)):
               if abs(epsilon[i] - self.prev_epsilon[i]) < 0.10:
                  if len(self.objectives[i]) <= 1:
                     self.objectives[i][random.randint(0,len(objectives[i])-1)] = unselected_levels[random.randint(0,len(unselected_levels)-1)] 
@@ -246,7 +243,7 @@ class Parent:
                     self.objectives[i][0] = unselected_levels[random.randint(0,len(unselected_levels)-1)]
                  self.prev_epsilon = epsilon
                  break
-           self.prev_epsilon = epsilon
+            self.prev_epsilon = epsilon
 
 
     def check_objectives(self):
@@ -267,7 +264,7 @@ class Parent:
             #self.update_objectives()
             #logging.info('Found Winning Solution')
 
-        #if (self.evaluated_so_far + 1) % 50 == 0:
+        #if (self.evaluated_so_far + 1) % 50 == 0 and self.evaluated_so_far != 0:
         self.update_objectives(found_winning_agent)
 
 
@@ -277,16 +274,16 @@ class Parent:
         filtered_population = []
         for solution in self.map_elites.population:
             filter_solution = False
-            logging.info(solution[1])
-            logging.info(solution[2])
-            logging.info(solution[3])            
+            #logging.info(solution[1])
+            #logging.info(solution[2])
+            #logging.info(solution[3])            
             for i in range(len(self.objectives)):
                 if len(self.objectives[i]) != len(solution[3][i]):
                     filter_solution = True
                 else:
-                    for objective in self.objectives:
-                        for j in range(len(objective)):
-                            if objective[j] != solution[3][j]:
+                    for j in range(len(self.objectives)):
+                        for k in range(len(self.objectives[j])):
+                            if self.objectives[j][k] != solution[3][j][k]:
                                filter_solution = True
 
             if filter_solution == False:
@@ -295,7 +292,7 @@ class Parent:
         self.map_elites.population = filtered_population
         fronts = self.map_elites.non_dominated_sort()
         self.fronts = fronts
-        logging.info(len(fronts))
+        #logging.info(len(fronts))
         crowding_dists = self.map_elites.crowding_distance(fronts)
         self.crowding_dists = crowding_dists
         self.map_elites.select_new_population(fronts, crowding_dists)
