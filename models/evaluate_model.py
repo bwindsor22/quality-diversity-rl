@@ -84,7 +84,7 @@ def evaluate_net(policy_net,
             sum_score += -1
             logging.debug("Invalid Action Output By Model")
             logging.debug("Score: {}, won: {}".format(sum_score.item(), won))
-            return sum_score,won
+            return sum_score, won
 
         obs, reward_raw, done, info = env.step(action.item())
         reward = torch.tensor([reward_raw], device=device)
@@ -106,7 +106,7 @@ def evaluate_net(policy_net,
         state = get_screen(env, device)
 
         # modify and save history as apropriate
-        if len(history_small) > 7:
+        if len(history_small) > 5:
             history_small.pop(0)
         if is_winner or is_loser or reward_raw > 0:
             history_small.append((-10, state, -10, crit))
@@ -146,15 +146,22 @@ def save_small(SAVE_DIR, game_level, history_small, t):
     if is_win:
         for i, data in enumerate(history_small):
             action, state, reward_raw, crit = data
-            numpy_save(SAVE_DIR, run_id, game_level, state, action, t, reward_raw, crit, str(i - 1))
+            numpy_save(SAVE_DIR, run_id + '_winseq_', game_level, state, action, t, reward_raw, crit, str(i))
     else:
         for i, data in enumerate(history_small):
             action, state, reward_raw, crit = data
-            if (int(action) == 1 and int(reward_raw) == 2) or \
-               (int(action) == 1 and 'lose' == crit and random.random() <= 0.25) or\
-               (int(reward_raw) == 1):
-                numpy_save(SAVE_DIR, run_id, game_level, state, action, t, reward_raw, crit, str(i - 1))
+            if (int(action) == 1 and int(reward_raw) == 2):
+                numpy_save(SAVE_DIR, run_id + '_attW_', game_level, state, action, t, reward_raw, crit, str(i))
+            elif (int(action) == 1 and 'lose' == crit and random.random() <= 0.25):
+                numpy_save(SAVE_DIR, run_id + '_attL_', game_level, state, action, t, reward_raw, crit, str(i))
+            elif (int(reward_raw) == 1) and i > 1:
+                prev_data = history_small[i - 1]
+                action, state, reward_raw, crit = prev_data
+                numpy_save(SAVE_DIR, run_id + '_keyget_', game_level, state, action, t, 1, crit, str(i))
 
+                prev_data = history_small[i - 2]
+                action, state, reward_raw, crit = prev_data
+                numpy_save(SAVE_DIR, run_id + '_keygetprev_', game_level, state, action, t, 1, crit, str(i))
 
 
 def numpy_save(SAVE_DIR, run_id, game_level, current_screen, action, t, reward_raw, crit, frame_num):
