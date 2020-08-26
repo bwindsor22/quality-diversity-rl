@@ -106,7 +106,7 @@ def evaluate_net(policy_net,
         state = get_screen(env, device)
 
         # modify and save history as apropriate
-        if len(history_small) > 5:
+        if len(history_small) > 7:
             history_small.pop(0)
         if is_winner or is_loser or reward_raw > 0:
             history_small.append((-10, state, -10, crit))
@@ -155,13 +155,6 @@ def save_small(SAVE_DIR, game_level, history_small, t):
                (int(reward_raw) == 1):
                 numpy_save(SAVE_DIR, run_id, game_level, state, action, t, reward_raw, crit, str(i - 1))
 
-def save_before_during_after(SAVE_DIR, game_level, prev_state, state, env, device, action, t, reward_raw, is_winner, is_loser, is_sample):
-    crit = critical_label(is_winner, is_loser, is_sample)
-    run_id = str(uuid.uuid4())
-    numpy_save(SAVE_DIR, run_id, game_level, prev_state, action, t, reward_raw, crit, '-1')
-    numpy_save(SAVE_DIR, run_id, game_level, state, action, t, reward_raw, crit, '0')
-    result_screen = get_screen(env, device)
-    numpy_save(SAVE_DIR, run_id, game_level, result_screen, action, t, reward_raw, crit, '1')
 
 
 def numpy_save(SAVE_DIR, run_id, game_level, current_screen, action, t, reward_raw, crit, frame_num):
