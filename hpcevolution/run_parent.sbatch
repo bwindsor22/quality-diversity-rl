@@ -3,9 +3,9 @@
 #SBATCH --job-name=master
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task=4
+#SBATCH --cpus-per-task=20
 #SBATCH --time=48:00:00
-#SBATCH --mem=10GB
+#SBATCH --mem=200GB
 #SBATCH --output=/scratch/bw1879/quality-diversity-rl/logs/qdrl-master-parent-%A.out
 
 module purge

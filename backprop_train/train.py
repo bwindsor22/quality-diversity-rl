@@ -7,7 +7,7 @@ from pathlib import Path
 
 from evolution.initialization_utils import get_simple_net
 from models.evaluate_model import select_action_without_random
-from models.caching_environment_maker import GVGAI_RUBEN
+from models.caching_environment_maker import GVGAI_RUBEN, GVGAI_BAM4D
 
 
 def attack_to_score(act, record):
@@ -76,8 +76,11 @@ datasets = [
 ]
 
 
-saves_numpy = Path(__file__).parent.parent / 'saves_numpy'
-gvgai_version = GVGAI_RUBEN
+#saves_numpy = Path(__file__).parent.parent / 'saves_numpy'
+saves_numpy = Path('/scratch/bw1879/quality-diversity-rl/saves_numpy/')
+
+print('saves path', str(saves_numpy))
+gvgai_version = GVGAI_BAM4D
 game = 'gvgai-zelda'
 
 
@@ -87,7 +90,7 @@ policy_net, init_model = get_simple_net()
 policy_net.__init__(*init_model)
 
 
-num_epochs = 50
+num_epochs = 500
 
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(policy_net.parameters(), lr=0.001, momentum=0.9)
@@ -113,7 +116,7 @@ for epoch in range(num_epochs):
             all_labels.append(int(parts['act']))
             i += 1
 
-            if i % 3 == 0:
+            if i % 1000 == 0:
 
                 screens_f = torch.tensor(all_screens)
                 model_actions = policy_net(screens_f)
