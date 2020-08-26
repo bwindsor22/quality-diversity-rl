@@ -150,18 +150,18 @@ def save_small(SAVE_DIR, game_level, history_small, t):
     else:
         for i, data in enumerate(history_small):
             action, state, reward_raw, crit = data
-            if (int(action) == 1 and int(reward_raw) == 2):
+            if (int(action) == 5 and int(reward_raw) == 2):
                 numpy_save(SAVE_DIR, run_id + '_attW_', game_level, state, action, t, reward_raw, crit, str(i))
-            elif (int(action) == 1 and 'lose' == crit and random.random() <= 0.25):
+            elif (int(action) == 5 and 'lose' == crit and random.random() <= 0.25):
                 numpy_save(SAVE_DIR, run_id + '_attL_', game_level, state, action, t, reward_raw, crit, str(i))
             elif (int(reward_raw) == 1) and i > 1:
                 prev_data = history_small[i - 1]
                 action, state, reward_raw, crit = prev_data
-                numpy_save(SAVE_DIR, run_id + '_keyget_', game_level, state, action, t, 1, crit, str(i))
+                numpy_save(SAVE_DIR, run_id + '_keyget_', game_level, state, action, t, 1, crit, str(i - 1))
 
                 prev_data = history_small[i - 2]
                 action, state, reward_raw, crit = prev_data
-                numpy_save(SAVE_DIR, run_id + '_keygetprev_', game_level, state, action, t, 1, crit, str(i))
+                numpy_save(SAVE_DIR, run_id + '_keygetprev_', game_level, state, action, t, 1, crit, str(i - 2))
 
 
 def numpy_save(SAVE_DIR, run_id, game_level, current_screen, action, t, reward_raw, crit, frame_num):
