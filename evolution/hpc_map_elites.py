@@ -171,20 +171,20 @@ class HPCMapElites(MapElites):
         
         self.population = new_population
 
-    def calculate_epsilon(self,num_objectives):
+    def calculate_avg(self,num_objectives):
 
-        epsilon = []
+        avg = []
 
-        for i in range(len(num_objectives)):
-            epsilon.append(0)
+        for i in range(num_objectives):
+            avg.append(0)
         for solution in self.population:
             for i in range(len(solution[1])):
-                epsilon[i] += solution[1][i]
+                avg[i] += solution[1][i]
 
-        for i in range(len(epsilon)):
-            epsilon[i] = epsilon[i]/400
+        for i in range(len(avg)):
+            avg[i] = avg[i]/len(self.population)
 
-        return epsilon
+        return avg
             
         
                 
