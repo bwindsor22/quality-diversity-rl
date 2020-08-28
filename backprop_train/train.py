@@ -2,44 +2,30 @@ import numpy as np
 import torch
 import torch.optim as optim
 import torch.nn as nn
+import logging
+
+logging.basicConfig(filename='../logs/parent-{}.log'.format('train'), level=logging.INFO)
+logging.getLogger().addHandler(logging.StreamHandler())
+logging.info('Initializing parent')
 
 from pathlib import Path
 
 from evolution.initialization_utils import get_simple_net
-from models.evaluate_model import select_action_without_random
 from models.caching_environment_maker import GVGAI_RUBEN
 
+from batch_data_prep.file_rw_utils import parse_name
 
-def attack_to_score(act, record):
-    return int(act) == 1
+def attack_to_win(act, record):
+    return int(act) == 5
 
 
 def attack_to_lose(act, record):
-    return int(act) != 1
+    return int(act) != 5
 
 
-def move_to_reward1(act, record):
+def match_move(act, record):
     return int(act) == int(record)
 
-
-def move_to_win(act, record):
-    return int(act) == int(record)
-
-def parse_name(file_name):
-    items = dict()
-    parts = file_name.split('_')
-    items['uuid'] = parts[0]
-    items['lvl'] = parts[1]
-    is_name = True
-    name = ''
-    for part in parts[2:]:
-        if is_name:
-            name = part
-            is_name = False
-        else:
-            items[name] = part
-            is_name = True
-    return items
 
 
 def one_hot_embedding(labels, num_classes):
@@ -58,25 +44,25 @@ def one_hot_embedding(labels, num_classes):
 
 datasets = [
     {
-        'dir': '*act_1_reward_2.0_crit_other*.npy',
-        'func': attack_to_score,
+        'dir': '*keyget_*.npy',
+        'func': match_move,
+    },
+    {
+        'dir': '*winseq_*.npy',
+        'func': match_move,
     },
     # {
-    #     'dir': '*act_1_*crit_lose*.npy',
+    #     'dir': '*attL*.npy',
     #     'func': attack_to_lose,
     # },
     {
-        'dir': '*reward_1.0_crit_other*.npy',
-        'func': move_to_reward1,
-    },
-    {
-        'dir': '*reward_1.0_crit_win*.npy',
-        'func': move_to_win,
-    },
+        'dir': '*attW*.npy',
+        'func': attack_to_win,
+    }
 ]
 
 
-saves_numpy = Path(__file__).parent.parent / 'saves_numpy'
+saves_numpy = Path(__file__).parent.parent / 'saves_server_sample_2'
 gvgai_version = GVGAI_RUBEN
 game = 'gvgai-zelda'
 
@@ -87,7 +73,8 @@ policy_net, init_model = get_simple_net()
 policy_net.__init__(*init_model)
 
 
-num_epochs = 50
+num_epochs = 500
+minibatch = 50
 
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(policy_net.parameters(), lr=0.001, momentum=0.9)
@@ -104,16 +91,22 @@ for epoch in range(num_epochs):
         dir = data['dir']
         eval_function = data['func']
         i = 0
+        cume_loss = 0
         for file in saves_numpy.glob(dir):
             parts = parse_name(file.stem)
-            screen = np.load(str(file))
+            try:
+                screen = np.load(str(file))
+            except Exception as e:
+                logging.info('unable to load {}'.format(str(e)))
             # output = eval_function(model_action, parts['act'])
             # all_screens.append(torch.tensor(screen))
-            all_screens.append(screen[0])
-            all_labels.append(int(parts['act']))
+            act = int(parts['act'])
+            if act != -10:
+                all_screens.append(screen[0])
+                all_labels.append(act)
             i += 1
 
-            if i % 3 == 0:
+            if i % minibatch == 0:
 
                 screens_f = torch.tensor(all_screens)
                 model_actions = policy_net(screens_f)
@@ -124,7 +117,9 @@ for epoch in range(num_epochs):
                 loss = criterion(model_actions, label_f)
                 loss.backward()
                 optimizer.step()
-                print('[{} {}] loss: {}'.format(epoch + 1, i, loss.item()))
+                loss_val = loss.item()
+                cume_loss += loss_val
+                logging.info('[{} {}] loss: {}'.format(epoch + 1, i, loss_val))
 
                 all_screens.clear()
                 all_labels.clear()
@@ -140,12 +135,16 @@ for epoch in range(num_epochs):
             loss = criterion(model_actions, label_f)
             loss.backward()
             optimizer.step()
-            print('[{}] loss: {}'.format(epoch + 1, i, loss.item()))
+            loss_val = loss.item()
+            cume_loss += loss_val
+            logging.info('[{}] loss: {}'.format(epoch + 1, i, cume_loss))
 
             all_screens.clear()
             all_labels.clear()
 
-        print(i, 'for dir', dir)
+        logging.info('{} for dir {}'.format(i, dir))
+        logging.info('cume loss: {} \n\n\n\n'.format(cume_loss))
+        cume_loss = 0
 
 
 PATH = './policy_net.pth'
