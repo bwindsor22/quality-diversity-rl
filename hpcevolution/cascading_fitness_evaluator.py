@@ -6,6 +6,7 @@ import torch
 from datetime import datetime
 from itertools import islice
 from pathlib import Path
+from batch_data_prep.file_rw_utils import parse_name
 from models.evaluate_model import evaluate_net
 from models.evaluate_model import select_action_without_random
 from evolution.run_single_host_mapelite_train import SCORE_ALL, SCORE_WINNING, SCORE_LOSING
@@ -18,16 +19,12 @@ class CascadingFitnessEvaluator:
     def __init__(self, gvgai_version=None):
         self.gvgai_version = gvgai_version
         self.env_maker = CachingEnvironmentMaker(version=gvgai_version)
-        self.default_count = 50000
-        # self.attack_to_score_dir = saves_formatted / 'other' / '2.0' / '1'
-        # self.attack_to_lose_dir = saves_formatted / 'lose' / '-1.0' / '1'
-        # self.do_not_lose_dir = saves_formatted / 'lose' / '-1.0' / 'other'
-        # self.do_not_lose_dir = '*crit_lose*.npy'
+        self.default_count = 1000
 
-        self.attack_to_score = '*act_1_reward_2.0_crit_other*.npy' # 553
-        self.attack_to_lose = '*act_1_*crit_lose*.npy' # 3,542
-        self.reward_1 = '*reward_1.0_crit_other*.npy' # 1,682
-        self.do_win = '*reward_1.0_crit_win*.npy' # 8,798
+        self.attack_to_score = '*attW*.npy' #
+        self.attack_to_lose = '*attL*.npy' #
+        self.reward_1 = '*keyget_*.npy' #
+        self.do_win = '*winseq_*.npy' #
 
         self.threshold_score = 31000
 
@@ -38,7 +35,7 @@ class CascadingFitnessEvaluator:
         logging.info('beginning attack to score')
         start = datetime.now()
         def eval_function(act, record):
-            return int(act) == 1
+            return int(act) == int(record)
         att_score = self.eval_model(model, self.attack_to_score, eval_function, self.default_count)
         total_score += att_score
         logging.info('Finished attack to score with %d score, total: %d,  in %s', att_score, total_score, str(datetime.now() - start))
@@ -47,7 +44,7 @@ class CascadingFitnessEvaluator:
         logging.info('beginning attack to lose')
         start = datetime.now()
         def eval_function(act, record):
-            return int(act) != 1
+            return int(act) != int(record)
         no_att_score = self.eval_model(model, self.attack_to_lose, eval_function, self.default_count)
         total_score += no_att_score
         logging.info('Finished attack to lose with %d score, total: %d,  in %s', no_att_score, total_score, str(datetime.now() - start))
@@ -85,14 +82,12 @@ class CascadingFitnessEvaluator:
         return total_score, feature
 
 
-    def eval_model(self, model, dir, eval_function, eval_count, skip_1=False):
+    def eval_model(self, model, dir, eval_function, eval_count):
         score = 0
         i = 0
         # for i, file in enumerate(dir.glob('*.npy')):
         for file in saves_numpy.glob(dir):
             parts = parse_name(file.stem)
-            if int(parts['act']) == 1 and skip_1:
-                continue
             if i >= eval_count:
                 return score
             screen = np.load(str(file))
@@ -146,18 +141,3 @@ def game_fitness_feature_fn(score_strategy, stop_after, game, run_name, policy_n
     return fitness, feature_descriptor
 
 
-def parse_name(file_name):
-    items = dict()
-    parts = file_name.split('_')
-    items['uuid'] = parts[0]
-    items['lvl'] = parts[1]
-    is_name = True
-    name = ''
-    for part in parts[2:]:
-        if is_name:
-            name = part
-            is_name = False
-        else:
-            items[name] = part
-            is_name = True
-    return items
