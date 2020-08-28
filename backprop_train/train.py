@@ -83,6 +83,7 @@ policy_net.__init__(*init_model)
 
 num_epochs = 2000
 minibatch = 50
+save_every = 1000
 
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(policy_net.parameters(), lr=0.001, momentum=0.9)
@@ -172,11 +173,14 @@ for epoch in range(num_epochs):
     logging.info('epoch {} cume loss: {} \n\n'.format(epoch, cume_loss))
     cume_loss = 0
     loss_record.append((epoch, cume_loss))
+    if epoch % save_every == 0:
+        PATH = './policy_net_epoch_{}.pth'.format(epoch)
+        torch.save(policy_net.state_dict(), PATH)
 
 logging.info('all losses')
 logging.info(str(loss_record))
 
-PATH = './policy_net.pth'
+PATH = './policy_net_epoch_{}.pth'.format(epoch)
 torch.save(policy_net.state_dict(), PATH)
 
 print('hi')
