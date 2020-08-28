@@ -63,14 +63,14 @@ datasets = [
 ]
 
 
-is_mac = True
+is_mac = False
 #saves_numpy = Path(__file__).parent.parent / 'saves_numpy'
 if is_mac:
     saves_numpy = Path('/Users/bradwindsor/ms_projects/qd-gen/gameQD/saves_server_sample_2/')
 else:
     saves_numpy = Path('/scratch/bw1879/quality-diversity-rl/saves_numpy/')
 
-print('saves path', str(saves_numpy))
+logging.info('saves path' + str(saves_numpy))
 gvgai_version = GVGAI_BAM4D
 game = 'gvgai-zelda'
 
@@ -81,7 +81,7 @@ policy_net, init_model = get_simple_net()
 policy_net.__init__(*init_model)
 
 
-num_epochs = 500
+num_epochs = 2000
 minibatch = 50
 
 criterion = nn.CrossEntropyLoss()
@@ -173,8 +173,8 @@ for epoch in range(num_epochs):
     cume_loss = 0
     loss_record.append((epoch, cume_loss))
 
-print('all losses')
-print(loss_record)
+logging.info('all losses')
+logging.info(str(loss_record))
 
 PATH = './policy_net.pth'
 torch.save(policy_net.state_dict(), PATH)
