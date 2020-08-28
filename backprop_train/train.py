@@ -1,4 +1,5 @@
 import numpy as np
+from itertools import islice
 import torch
 import torch.optim as optim
 import torch.nn as nn
@@ -11,7 +12,6 @@ logging.info('Initializing parent')
 from pathlib import Path
 
 from evolution.initialization_utils import get_simple_net
-from models.evaluate_model import select_action_without_random
 from models.caching_environment_maker import GVGAI_RUBEN, GVGAI_BAM4D
 
 from batch_data_prep.file_rw_utils import parse_name
@@ -63,8 +63,12 @@ datasets = [
 ]
 
 
+is_mac = True
 #saves_numpy = Path(__file__).parent.parent / 'saves_numpy'
-saves_numpy = Path('/scratch/bw1879/quality-diversity-rl/saves_numpy/')
+if is_mac:
+    saves_numpy = Path('/Users/bradwindsor/ms_projects/qd-gen/gameQD/saves_server_sample_2/')
+else:
+    saves_numpy = Path('/scratch/bw1879/quality-diversity-rl/saves_numpy/')
 
 print('saves path', str(saves_numpy))
 gvgai_version = GVGAI_BAM4D
@@ -85,25 +89,41 @@ optimizer = optim.SGD(policy_net.parameters(), lr=0.001, momentum=0.9)
 
 all_screens = []
 all_labels = []
+loss_record = []
 
+def get_generators():
+    ### Make Generators
+    generators = []
+    gen_diffs = []
+    gen_start = 0
+    gen_diff = 1000
+    while gen_start < 1000000:
+        gen_diffs.append((gen_start, gen_start + gen_diff))
+        gen_start += gen_diff
+    for gen_start, gen_end in gen_diffs:
+        for data in datasets:
+            dir = data['dir']
+            generators.append((islice(saves_numpy.glob(dir), gen_start, gen_end), dir))
+    return generators
 
 for epoch in range(num_epochs):
     running_loss = 0
     optimizer.zero_grad()
 
-    for data in datasets:
-        dir = data['dir']
-        eval_function = data['func']
+    cume_loss = 0
+    epoch_counts = []
+
+
+    ### Use Generators
+    for generator, dir in get_generators():
         i = 0
-        cume_loss = 0
-        for file in saves_numpy.glob(dir):
+        for file in generator:
             parts = parse_name(file.stem)
             try:
                 screen = np.load(str(file))
             except Exception as e:
                 logging.info('unable to load {}'.format(str(e)))
-            # output = eval_function(model_action, parts['act'])
-            # all_screens.append(torch.tensor(screen))
+
             act = int(parts['act'])
             if act != -10:
                 all_screens.append(screen[0])
@@ -128,7 +148,6 @@ for epoch in range(num_epochs):
                 all_screens.clear()
                 all_labels.clear()
 
-
         if len(all_screens):
             screens_f = torch.tensor(all_screens)
             model_actions = policy_net(screens_f)
@@ -147,9 +166,15 @@ for epoch in range(num_epochs):
             all_labels.clear()
 
         logging.info('{} for dir {}'.format(i, dir))
-        logging.info('cume loss: {} \n\n\n\n'.format(cume_loss))
-        cume_loss = 0
+        epoch_counts.append(i)
+        if len(epoch_counts) > len(datasets) and sum(epoch_counts[(-2*len(datasets)):]) == 0:
+            break
+    logging.info('epoch {} cume loss: {} \n\n'.format(epoch, cume_loss))
+    cume_loss = 0
+    loss_record.append((epoch, cume_loss))
 
+print('all losses')
+print(loss_record)
 
 PATH = './policy_net.pth'
 torch.save(policy_net.state_dict(), PATH)
