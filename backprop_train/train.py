@@ -81,7 +81,7 @@ policy_net, init_model = get_simple_net()
 policy_net.__init__(*init_model)
 
 
-num_epochs = 2000
+num_epochs = 50000
 minibatch = 50
 save_every = 1000
 
