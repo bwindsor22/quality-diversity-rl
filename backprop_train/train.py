@@ -11,7 +11,8 @@ logging.info('Initializing parent')
 from pathlib import Path
 
 from evolution.initialization_utils import get_simple_net
-from models.caching_environment_maker import GVGAI_RUBEN
+from models.evaluate_model import select_action_without_random
+from models.caching_environment_maker import GVGAI_RUBEN, GVGAI_BAM4D
 
 from batch_data_prep.file_rw_utils import parse_name
 
@@ -62,8 +63,11 @@ datasets = [
 ]
 
 
-saves_numpy = Path(__file__).parent.parent / 'saves_server_sample_2'
-gvgai_version = GVGAI_RUBEN
+#saves_numpy = Path(__file__).parent.parent / 'saves_numpy'
+saves_numpy = Path('/scratch/bw1879/quality-diversity-rl/saves_numpy/')
+
+print('saves path', str(saves_numpy))
+gvgai_version = GVGAI_BAM4D
 game = 'gvgai-zelda'
 
 
