@@ -6,10 +6,11 @@ import torch
 class HPCMapElites(MapElites):
 
     def next_model(self):
+        logging.info('preloaded path: ' + self.preloaded_model_path)
         if self.cmaes:
             model_state = self.cmaes.ask()
         elif self.preloaded_model_path and len(self.solutions) < self.num_initial_solutions:
-            print('loading preloaded')
+            logging.info('loading preloaded')
             state_dict = torch.load(self.preloaded_model_path)
             # self.model.load_state_dict(state_dict)
             return state_dict

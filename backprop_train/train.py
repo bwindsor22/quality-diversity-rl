@@ -6,7 +6,7 @@ import torch.nn as nn
 import logging
 from collections import OrderedDict
 
-logging.basicConfig(filename='../logs/parent-{}.log'.format('train'), level=logging.INFO)
+logging.basicConfig(filename='../logs/gpu-{}.log'.format('train'), level=logging.INFO)
 logging.getLogger().addHandler(logging.StreamHandler())
 logging.info('Initializing parent')
 
@@ -75,16 +75,21 @@ logging.info('saves path' + str(saves_numpy))
 gvgai_version = GVGAI_BAM4D
 game = 'gvgai-zelda'
 
-print('devices', torch.cuda.device_count())
-print('is available', torch.cuda.is_available())
+logging.info('devices' + str(torch.cuda.device_count()))
+logging.info('is available' + str( torch.cuda.is_available()))
 
 
 policy_net, init_model = get_simple_net(is_gpu=is_gpu)
 policy_net.__init__(*init_model)
 
+if is_gpu:
+    policy_net.to(torch.device('cuda:0'))
+
+logging.info('cuda' + str(next(policy_net.parameters()).is_cuda))
+
 
 num_epochs = 50000
-minibatch = 50
+minibatch = 200
 save_every = 1
 
 criterion = nn.CrossEntropyLoss()
@@ -135,42 +140,42 @@ for epoch in range(num_epochs):
 
             if i % minibatch == 0:
 
-                screens_f = torch.tensor(all_screens)
+                screens_f = torch.tensor(all_screens).cuda()
                 model_actions = policy_net(screens_f)
 
                 # out_f = one_hot_embedding(all_outputs, 10)
-                label_f = torch.tensor(all_labels)
+                label_f = torch.tensor(all_labels).cuda()
                 # print('shapes', model_actions.shape, label_f.shape)
                 loss = criterion(model_actions, label_f)
                 loss.backward()
                 optimizer.step()
                 loss_val = loss.item()
                 cume_loss += loss_val
-                logging.info('[{} {}] loss: {}'.format(epoch + 1, i, loss_val))
+                logging.info('[{} {}] loss: {}'.format(epoch, i, loss_val))
 
                 all_screens.clear()
                 all_labels.clear()
 
         if len(all_screens):
-            screens_f = torch.tensor(all_screens)
+            screens_f = torch.tensor(all_screens).cuda()
             model_actions = policy_net(screens_f)
 
             # out_f = one_hot_embedding(all_outputs, 10)
-            label_f = torch.tensor(all_labels)
+            label_f = torch.tensor(all_labels).cuda()
             # print('shapes', model_actions.shape, label_f.shape)
             loss = criterion(model_actions, label_f)
             loss.backward()
             optimizer.step()
             loss_val = loss.item()
             cume_loss += loss_val
-            logging.info('[{}] loss: {}'.format(epoch + 1, i, cume_loss))
+            logging.info('[{} {}] loss: {}'.format(epoch, i, cume_loss))
 
             all_screens.clear()
             all_labels.clear()
 
         logging.info('{} for dir {}'.format(i, dir))
         epoch_counts.append(i)
-        if len(epoch_counts) > len(datasets) and any([0 == x for x in epoch_counts[(-1*len(datasets)):]]):
+        if len(epoch_counts) > len(datasets) and any([0 == x for x in epoch_counts[(-2*len(datasets)):]]):
             break
         if len(epoch_counts) > len(datasets) and sum(epoch_counts[(-2*len(datasets)):]) == 0:
             break
@@ -178,7 +183,7 @@ for epoch in range(num_epochs):
     cume_loss = 0
     loss_record.append((epoch, cume_loss))
     if epoch % save_every == 0:
-        PATH = './policy_net_gpu_epoch_{}.pth'.format(epoch)
+        PATH = './policy_net_simp_gpu_epoch_{}.pth'.format(epoch)
         best_model_state_dict = {k: v.to('cpu') for k, v in policy_net.state_dict().items()}
         best_model_state_dict = OrderedDict(best_model_state_dict)
         torch.save(best_model_state_dict, PATH)

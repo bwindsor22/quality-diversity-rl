@@ -36,7 +36,7 @@ class Parent:
         policy_net.__init__(*init_model)
 
         # preloaded_path = '/Users/bradwindsor/ms_projects/qd-gen/gameQD/backprop_train/policy_net.pth'
-        preloaded_path = '/scratch/bw1879/quality-diversity-rl/backprop_train/policy_net_each_32_epoch_10.pth'
+        preloaded_path = '/scratch/bw1879/quality-diversity-rl/backprop_train/policy_net_each_32_epoch_12.pth'
 
         # set up directories
         parent = Path(__file__).parent
@@ -63,7 +63,7 @@ class Parent:
                   mepgd_possibility,
                   gvgai_version=gvgai_version,
                   is_cmaes=cmaes,
-                  preloaded_model=preloaded_path)
+                  preloaded_model_path=preloaded_path)
 
     # import pickle
     # result = Result(run_data.model, '0-0-0-0-0', 10)
