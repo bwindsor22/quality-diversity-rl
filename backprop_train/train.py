@@ -4,6 +4,7 @@ import torch
 import torch.optim as optim
 import torch.nn as nn
 import logging
+from collections import OrderedDict
 
 logging.basicConfig(filename='../logs/parent-{}.log'.format('train'), level=logging.INFO)
 logging.getLogger().addHandler(logging.StreamHandler())
@@ -178,7 +179,9 @@ for epoch in range(num_epochs):
     loss_record.append((epoch, cume_loss))
     if epoch % save_every == 0:
         PATH = './policy_net_gpu_epoch_{}.pth'.format(epoch)
-        torch.save(policy_net.state_dict(), PATH)
+        best_model_state_dict = {k: v.to('cpu') for k, v in policy_net.state_dict().items()}
+        best_model_state_dict = OrderedDict(best_model_state_dict)
+        torch.save(best_model_state_dict, PATH)
 
 logging.info('all losses')
 logging.info(str(loss_record))
