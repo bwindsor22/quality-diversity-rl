@@ -6,6 +6,7 @@
 #SBATCH --time=72:00:00
 #SBATCH --mem=10GB
 #SBATCH --output=/scratch/bw1879/quality-diversity-rl/logs/train-%A.out
+#SBATCH --gres=gpu:v100:1
 
 module purge
 module load jdk/11.0.4

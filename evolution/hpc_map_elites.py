@@ -1,13 +1,18 @@
 import logging
 
 from evolution.map_elites import MapElites
-
+import torch
 
 class HPCMapElites(MapElites):
 
     def next_model(self):
         if self.cmaes:
             model_state = self.cmaes.ask()
+        elif self.preloaded_model_path and len(self.solutions) < self.num_initial_solutions:
+            print('loading preloaded')
+            state_dict = torch.load(self.preloaded_model_path)
+            # self.model.load_state_dict(state_dict)
+            return state_dict
         elif len(self.solutions) < self.num_initial_solutions:
             self.model.__init__(*self.init_model)
             model_state = self.model.state_dict()

@@ -32,13 +32,13 @@ def get_initial_policy_net(level='gvgai-zelda-lvl0-v0', LINEAR_INPUT_SCALAR=8,
     policy_net = BigNet(*init_model).to(device)
     return policy_net, init_model
 
-def get_simple_net():
+def get_simple_net(is_gpu=False):
     screen_height = 90
     screen_width = 130
     LINEAR_INPUT_SCALAR = 8
     KERNEL = 5
     n_actions = 6
     init_model = [screen_height, screen_width, LINEAR_INPUT_SCALAR, KERNEL, n_actions]
-    device = torch.device("cpu")
+    device = torch.device("cpu") if not is_gpu else torch.device('cuda:0')
     policy_net = BigNet(*init_model).to(device)
     return policy_net, init_model

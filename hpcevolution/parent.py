@@ -33,6 +33,10 @@ class Parent:
         self.total_to_evaluate = num_iter
 
         policy_net, init_model = get_initial_model(gvgai_version, game)
+        policy_net.__init__(*init_model)
+
+        # preloaded_path = '/Users/bradwindsor/ms_projects/qd-gen/gameQD/backprop_train/policy_net.pth'
+        preloaded_path = '/scratch/bw1879/quality-diversity-rl/backprop_train/policy_net_each_32_epoch_10.pth'
 
         # set up directories
         parent = Path(__file__).parent
@@ -58,7 +62,8 @@ class Parent:
                   is_mepgd,
                   mepgd_possibility,
                   gvgai_version=gvgai_version,
-                  is_cmaes=cmaes)
+                  is_cmaes=cmaes,
+                  preloaded_model=preloaded_path)
 
     # import pickle
     # result = Result(run_data.model, '0-0-0-0-0', 10)

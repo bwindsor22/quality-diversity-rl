@@ -24,7 +24,8 @@ class MapElites(object):
                  feature_descriptor=None,
                  fitness_feature=None,
                  gvgai_version=None,
-                 is_cmaes=False):
+                 is_cmaes=False,
+                 preloaded_model_path=None):
 
         self.solutions = {}
         self.performances = {}
@@ -46,6 +47,7 @@ class MapElites(object):
         self.feature_descriptor = feature_descriptor
         self.fitness_feature = fitness_feature
         self.gvgai_version = gvgai_version
+        self.preloaded_model_path = preloaded_model
         self.normal_dist_variance = 0.03
         self.log_counts = 1000  # number of times to log intermediate results
 
@@ -87,6 +89,7 @@ class MapElites(object):
                                            torch.randn_like(x) * self.normal_dist_variance + x,
                                            x)
             else:
+                print('not mutating layer', l)
                 new_state[l] = x
         return new_state
 

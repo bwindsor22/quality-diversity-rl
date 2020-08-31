@@ -62,7 +62,7 @@ datasets = [
     }
 ]
 
-
+is_gpu = True
 is_mac = False
 #saves_numpy = Path(__file__).parent.parent / 'saves_numpy'
 if is_mac:
@@ -74,16 +74,17 @@ logging.info('saves path' + str(saves_numpy))
 gvgai_version = GVGAI_BAM4D
 game = 'gvgai-zelda'
 
+print('devices', torch.cuda.device_count())
+print('is available', torch.cuda.is_available())
 
 
-
-policy_net, init_model = get_simple_net()
+policy_net, init_model = get_simple_net(is_gpu=is_gpu)
 policy_net.__init__(*init_model)
 
 
 num_epochs = 50000
 minibatch = 50
-save_every = 1000
+save_every = 1
 
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(policy_net.parameters(), lr=0.001, momentum=0.9)
@@ -168,19 +169,21 @@ for epoch in range(num_epochs):
 
         logging.info('{} for dir {}'.format(i, dir))
         epoch_counts.append(i)
+        if len(epoch_counts) > len(datasets) and any([0 == x for x in epoch_counts[(-1*len(datasets)):]]):
+            break
         if len(epoch_counts) > len(datasets) and sum(epoch_counts[(-2*len(datasets)):]) == 0:
             break
     logging.info('epoch {} cume loss: {} \n\n'.format(epoch, cume_loss))
     cume_loss = 0
     loss_record.append((epoch, cume_loss))
     if epoch % save_every == 0:
-        PATH = './policy_net_epoch_{}.pth'.format(epoch)
+        PATH = './policy_net_gpu_epoch_{}.pth'.format(epoch)
         torch.save(policy_net.state_dict(), PATH)
 
 logging.info('all losses')
 logging.info(str(loss_record))
 
-PATH = './policy_net_epoch_{}.pth'.format(epoch)
+PATH = './policy_net_gpu_epoch_{}.pth'.format(epoch)
 torch.save(policy_net.state_dict(), PATH)
 
 print('hi')
