@@ -6,10 +6,6 @@ import torch.nn as nn
 import logging
 from collections import OrderedDict
 
-logging.basicConfig(filename='../logs/gpu-{}.log'.format('train'), level=logging.INFO)
-logging.getLogger().addHandler(logging.StreamHandler())
-logging.info('Initializing parent')
-
 from pathlib import Path
 
 from evolution.initialization_utils import get_simple_net
@@ -65,6 +61,13 @@ datasets = [
 
 is_gpu = True
 is_mac = False
+
+run_name = 'small_gpu_keyget_winseq_only_sm_batch'
+logging.basicConfig(filename='../logs/gpu-{}-{}.log'.format(run_name, 'train'), level=logging.INFO)
+logging.getLogger().addHandler(logging.StreamHandler())
+logging.info('Initializing parent')
+
+
 #saves_numpy = Path(__file__).parent.parent / 'saves_numpy'
 if is_mac:
     saves_numpy = Path('/Users/bradwindsor/ms_projects/qd-gen/gameQD/saves_server_sample_2/')
@@ -85,11 +88,11 @@ policy_net.__init__(*init_model)
 if is_gpu:
     policy_net.to(torch.device('cuda:0'))
 
-logging.info('cuda' + str(next(policy_net.parameters()).is_cuda))
+logging.info('policy net is cuda' + str(next(policy_net.parameters()).is_cuda))
 
 
 num_epochs = 50000
-minibatch = 200
+minibatch = 8
 save_every = 1
 
 criterion = nn.CrossEntropyLoss()
@@ -104,7 +107,7 @@ def get_generators():
     generators = []
     gen_diffs = []
     gen_start = 0
-    gen_diff = 1000
+    gen_diff = 2000
     while gen_start < 1000000:
         gen_diffs.append((gen_start, gen_start + gen_diff))
         gen_start += gen_diff
@@ -140,11 +143,15 @@ for epoch in range(num_epochs):
 
             if i % minibatch == 0:
 
-                screens_f = torch.tensor(all_screens).cuda()
+                screens_f = torch.tensor(all_screens)
+                if is_gpu:
+                    screens_f = screens_f.cuda()
                 model_actions = policy_net(screens_f)
 
                 # out_f = one_hot_embedding(all_outputs, 10)
-                label_f = torch.tensor(all_labels).cuda()
+                label_f = torch.tensor(all_labels)
+                if is_gpu:
+                    label_f = label_f.cuda()
                 # print('shapes', model_actions.shape, label_f.shape)
                 loss = criterion(model_actions, label_f)
                 loss.backward()
@@ -157,11 +164,15 @@ for epoch in range(num_epochs):
                 all_labels.clear()
 
         if len(all_screens):
-            screens_f = torch.tensor(all_screens).cuda()
+            screens_f = torch.tensor(all_screens)
+            if is_gpu:
+                screens_f = screens_f.cuda()
             model_actions = policy_net(screens_f)
 
             # out_f = one_hot_embedding(all_outputs, 10)
-            label_f = torch.tensor(all_labels).cuda()
+            label_f = torch.tensor(all_labels)
+            if is_gpu:
+               label_f = label_f.cuda()
             # print('shapes', model_actions.shape, label_f.shape)
             loss = criterion(model_actions, label_f)
             loss.backward()
@@ -182,8 +193,8 @@ for epoch in range(num_epochs):
     logging.info('epoch {} cume loss: {} \n\n'.format(epoch, cume_loss))
     cume_loss = 0
     loss_record.append((epoch, cume_loss))
-    if epoch % save_every == 0:
-        PATH = './policy_net_simp_gpu_epoch_{}.pth'.format(epoch)
+    if epoch % save_every == 0 or epoch == num_epochs - 1:
+        PATH = './policy_net_{}_epoch_{}.pth'.format(run_name, epoch)
         best_model_state_dict = {k: v.to('cpu') for k, v in policy_net.state_dict().items()}
         best_model_state_dict = OrderedDict(best_model_state_dict)
         torch.save(best_model_state_dict, PATH)
@@ -191,7 +202,5 @@ for epoch in range(num_epochs):
 logging.info('all losses')
 logging.info(str(loss_record))
 
-PATH = './policy_net_gpu_epoch_{}.pth'.format(epoch)
-torch.save(policy_net.state_dict(), PATH)
 
 print('hi')
