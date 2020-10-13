@@ -41,7 +41,8 @@ class Parent:
         population = []
         self.num_levels = 2
         self.objectives = [[5],[7]]
-        self.prev_avg = [0,0]
+        self.prev_avg = [-9999,-9999]
+        self.last_check = 0
         #population.append(policy_net)
         
         #for i in range(1,pop_size):
@@ -210,12 +211,14 @@ class Parent:
            #new_work = Work(model, self.score_strategy, self.game, self.stop_after, self.run_name_with_params, self.num_levels, self.objectives)
            #find available children
            #write work for available child
-        solutions_to_reevaluate = list(self.population)
+        solutions_to_reevaluate = list(self.map_elites.population)
         while(len(solutions_to_reevaluate) > 0):
             children = self.get_available_children()
             for child_name in children:
-                reval_data = Work(solutions_to_reevaluate[0][0], self.game, self.stop_after, self.run_name_with_params, self.num_levels, self.objectives)
-                self.write_work_for_child(self,reval_data,child_name)
+                if len(solutions_to_reevaluate) < 1:
+                    break
+                reval_data = Work(solutions_to_reevaluate[0][0], self.score_strategy,self.game, self.stop_after, self.run_name_with_params, self.num_levels, self.objectives)
+                self.write_work_for_child(reval_data,child_name)
                 self.work_per_generation += 1
                 solutions_to_reevaluate.pop(0)
         
@@ -238,26 +241,28 @@ class Parent:
            
             self.objectives[0].append(objectives[1][0])
             self.objectives[1][0] = unselected_levels[random.randint(0,len(unselected_levels)-1)]
-            avg = [0] * len(self.prev_avg)
+            avg = [-9999] * len(self.prev_avg)
             self.prev_avg = avg
             self.reevaluate_population()
             #Check if either two levels together can be combined or if levels are too be swapped out
 
-        if ((self.evaluated_so_far % 10 == 0 and self.evaluated_so_far != 0)  and found_winning_agent == False):
-            avg = self.map_elites.calculate_avg(len(self.objectives))       
+        if (((self.evaluated_so_far -self.last_check) % 100 == 0)  and found_winning_agent == False):
+            self.last_check = self.evaluated_so_far
+            #avg = self.map_elites.calculate_avg(len(self.objectives))       
+            avg = self.map_elites.calculate_max(len(self.objectives))
             unselected_levels = self.find_unselected_levels()
             for i in range(len(avg)):
-              if abs(avg[i] - self.prev_avg[i]) < 0.10:
-                 if len(self.objectives[i]) <= 1:
-                    self.objectives[i][random.randint(0,len(self.objectives[i])-1)] = unselected_levels[random.randint(0,len(unselected_levels)-1)] 
-                 else:
-                    self.objectives[i][0] = unselected_levels[random.randint(0,len(unselected_levels)-1)]
-                 avg = [0] * len(avg)
-                 self.prev_avg = avg
-                 self.reevaluate_population()
-                 break
+                if (avg[i] - self.prev_avg[i]) < 0.10:
+                    if len(self.objectives[i]) <= 1:
+                        self.objectives[i][random.randint(0,len(self.objectives[i])-1)] = unselected_levels[random.randint(0,len(unselected_levels)-1)] 
+                    else:
+                        self.objectives[i][0] = unselected_levels[random.randint(0,len(unselected_levels)-1)]
+                    self.prev_avg = avg
+                    avg = [-9999] * len(avg)
+                    self.reevaluate_population()
+                    break
             self.prev_avg = avg
-            logging.info("RMS & Previous RMS Values")
+            logging.info("Avg & Previous Avg Values")
             logging.info(avg)
             logging.info(self.prev_avg) 
 

@@ -186,8 +186,22 @@ class HPCMapElites(MapElites):
 
         return avg
             
+    def calculate_max(self,num_objectives):
         
-                
+        max = [0] * num_objectives
+
+        for j in range(num_objectives):
+            max[j] = self.population[0][1][j]
+
+        for j in range(num_objectives):
+            max_ind = 0
+            for i in range(1,len(self.population)):
+                if self.population[max_ind][1][j] < self.population[i][1][j]:
+                    max_ind = i
+                    max[j] = self.population[i][1][j]
+                    
+        return max
+                    
     def update_result(self, network, feature, fitness, objectives):
         #logging.info('Updating feature {}, performance {}'.format(feature, fitness))
         '''
