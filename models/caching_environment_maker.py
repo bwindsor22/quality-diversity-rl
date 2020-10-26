@@ -48,7 +48,8 @@ class CachingEnvironmentMaker:
         for att in range(self.make_env_attempts):
             try:
             # if True:
-                env = gym.make(level)
+                env = gym.make(level,tile_observations = True)
+                env = ZeldaEnv(env, crop=True, rotate=True, full=False, repava=True, shape=(84,84))
                 self.test_env(env)
                 return env
             except Exception as e:
