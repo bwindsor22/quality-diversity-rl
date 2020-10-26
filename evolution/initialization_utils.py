@@ -1,6 +1,7 @@
 import gym
 
 from environment_utils.utils import find_device
+from environment_utils.zelda_env_bam4d import ZeldaEnv
 from models.caching_environment_maker import CachingEnvironmentMaker
 from models.dqn import DQN
 from models.gvg_utils import get_screen
@@ -19,12 +20,15 @@ def get_initial_policy_net(level='gvgai-zelda-lvl0-v0', LINEAR_INPUT_SCALAR=16,
         env = env_maker(level)
     else:
         import gym_gvgai
-        env = gym.make(level)
+        env = gym.make(level,tile_observations = True)
+        env = ZeldaEnv(env, crop=True, rotate=True, full=False, repava=True, shape=(84,84))
 
     device = find_device()
-    init_screen = get_screen(env, device)
+    #init_screen = get_screen(env, device)
+    init_screen = env.reset()
 
-    _, _, screen_height, screen_width = init_screen.shape
+    #_, _, screen_height, screen_width = init_screen.shape
+    screen_height, screen_width, screen_depth = init_screen.shape
     n_actions = env.action_space.n
 
     init_model = [screen_height, screen_width, LINEAR_INPUT_SCALAR, KERNEL, n_actions]
