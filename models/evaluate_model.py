@@ -16,7 +16,7 @@ from IPython import display
 from models.dqn import DQN
 from models.gvg_utils import get_screen
 from environment_utils.utils import get_run_file_name, find_device
-from envrionment_utils.zelda_env_bam4d import ZeldaEnv
+from environment_utils.zelda_env_bam4d import ZeldaEnv
 import logging
 
 steps_done = 0
