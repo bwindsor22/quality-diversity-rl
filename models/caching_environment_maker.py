@@ -1,5 +1,7 @@
 import gym
 import logging
+from environment_utils.zelda_env_bam4d import ZeldaEnv
+
 
 GVGAI_RUBEN = 'GVGAI_RUBEN'
 GVGAI_BAM4D = 'GVGAI_BAM4D'

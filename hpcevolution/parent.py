@@ -40,7 +40,7 @@ class Parent:
         policy_net, init_model = get_initial_model(gvgai_version, game)
         population = []
         self.num_levels = 2
-        self.objectives = [[5],[7]]
+        self.objectives = [[7],[8]]
         self.prev_avg = [-9999,-9999]
         self.last_check = 0
         #population.append(policy_net)
@@ -61,7 +61,7 @@ class Parent:
         self.RESULTS_DIR.mkdir(exist_ok=True, parents=True)
         self.fronts = []
         self.crowding_dists = []
-        self.levels = [5,7,4,8,9,3,1,0,2,6]
+        self.levels = [7,8,4,5,9,3,1,0,2,6]
 
         # ready to go
         self.map_elites = HPCMapElites(policy_net,
