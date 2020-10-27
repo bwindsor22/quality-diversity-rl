@@ -16,6 +16,7 @@ from IPython import display
 from models.dqn import DQN
 from models.gvg_utils import get_screen
 from environment_utils.utils import get_run_file_name, find_device
+from environment_utils.zelda_env_bam4d import ZeldaEnv
 import logging
 
 steps_done = 0
@@ -55,20 +56,26 @@ def evaluate_net(policy_net,
         env = env_maker(game_level)
     else:
         import gym_gvgai
-        env = gym.make(game_level)
+        env = gym.make(game_level,tile_observations = True)
+        env = ZeldaEnv(env, crop=True, rotate=True, full=False, repava=True, shape=(84,84))
         env.reset()
 
     global steps_done
     steps_done = 0
 
-    init_screen = get_screen(env, device)
-    _, _, screen_height, screen_width = init_screen.shape
-
+    #init_screen = get_screen(env, device)
+    #_, _, screen_height, screen_width = init_screen.shape
+    
+    init_screen = env.reset()
+    screen_height, screen_width, screen_depth = init_screen.shape
     n_actions = env.action_space.n
 
-    last_screen = get_screen(env, device)
-    current_screen = get_screen(env, device)
+    #last_screen = get_screen(env, device)
+    #current_screen = get_screen(env, device)
+    current_screen = init_screen
     state = current_screen
+    state= torch.from_numpy(state).float().to(device)
+    state = state.view(-1,screen_depth,screen_height,screen_width)
     sum_score = 0
     won = 0
     key_found = 0
@@ -87,7 +94,9 @@ def evaluate_net(policy_net,
 
         # Observe new state
         last_screen = current_screen
-        current_screen = get_screen(env, device)
+        #current_screen = get_screen(env, device)
+        current_screen = obs
+        
         if not done:
             next_state = current_screen
         else:
@@ -105,6 +114,9 @@ def evaluate_net(policy_net,
 
         # Move to the next state
         state = next_state
+        state= torch.from_numpy(state).float().to(device)
+        state = state.view(-1,screen_depth,screen_height,screen_width)
+        
         if done or (stop_after and t >= int(stop_after)):
             if info['winner'] == "PLAYER_WINS" or info['winner'] == 3:
                 won = 1
