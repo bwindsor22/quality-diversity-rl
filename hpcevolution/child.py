@@ -30,15 +30,27 @@ def fitness_feature_fn(score_strategy, stop_after, game, run_name, policy_net, e
     """
     scores = 0
     wins = []
+    num_wins = 0
+    win_factor = 10
     num_levels = 10 if game == 'gvgai-dzelda' else 5
-    for lvl in range(num_levels):
+    lvls = [4,5,7]
+    #for lvl in range(num_levels):
+    for lvl in lvls:
         logging.debug('Running %s', f'{game}-lvl{lvl}-v0')
-        score, win = evaluate_net(policy_net,
+        score, win,key_found = evaluate_net(policy_net,
                                   game_level=f'{game}-lvl{lvl}-v0',
                                   stop_after=stop_after,
                                   env_maker=env_maker)
-        scores = combine_scores(scores, score, win, score_strategy)
+
+        #scores = combine_scores(scores, score, win, score_strategy)
+        scores += score
+        #num_wins += 1
+        #if win == 1:
+            #bonus so that unwon levels do not 
+            #scores += win_factor*(num_levels- num_wins)
+
         wins.append(win)
+        wins.append(key_found)
 
     fitness = scores
     feature_descriptor = '-'.join([str(i) for i in wins])

@@ -46,7 +46,7 @@ class MapElites(object):
         self.feature_descriptor = feature_descriptor
         self.fitness_feature = fitness_feature
         self.gvgai_version = gvgai_version
-        self.normal_dist_variance = 0.03
+        self.normal_dist_variance = 1.0
         self.log_counts = 1000  # number of times to log intermediate results
 
         self.cmame = is_cmame

@@ -31,6 +31,7 @@ class Parent:
         self.evaluated_so_far = 0
         self.count_loops = 0
         self.total_to_evaluate = num_iter
+        self.last_check = 0
 
         policy_net, init_model = get_initial_model(gvgai_version, game)
 
@@ -85,10 +86,16 @@ class Parent:
             logging.info('sleeping %d', SLEEP_TIME)
             time.sleep(SLEEP_TIME)
             self.count_loops += 1
+            if (self.evaluated_so_far - self.last_check) >= 200000:
+                logging.info('Saving intermediate models')
+                self.last_check = self.evaluated_so_far
+                for agent_name, model_dict in self.map_elites.solutions.items():
+                    torch.save(model_dict,'/scratch/bos221/qd-branches/master-5-9/quality-diversity-rl/saved_models/torch_model_{}'.format(agent_name))
 
         logging.info('Logging final results')
         logging.info(str(self.map_elites.performances))
-
+        for agent_name, model_dict in self.map_elites.solutions.items():
+            torch.save(model_dict,'/scratch/bos221/qd-branches/master-5-9/quality-diversity-rl/saved_models/torch_model_{}'.format(agent_name))
 
     def get_available_children(self):
         active = self.AVAILABLE_AGENTS_DIR.glob('*' + AVAILABLE_EXTENSION)

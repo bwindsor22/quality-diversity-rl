@@ -17,7 +17,7 @@ class HPCMapElites(MapElites):
 
 
     def update_result(self, network, feature, fitness):
-        logging.info('Updating feature {}, performance {}'.format(feature, fitness))
+        #logging.info('Updating feature {}, performance {}'.format(feature, fitness))
 
         if self.cmame:
             self.emitters.tell(feature, network, fitness)
@@ -25,4 +25,4 @@ class HPCMapElites(MapElites):
             logging.info('Found better performance for feature: {}, new score: {}'.format(feature, fitness))
             self.performances[feature] = fitness
             self.solutions[feature] = network
-        logging.info('updated map elites with result')
+            logging.info('updated map elites with result')
