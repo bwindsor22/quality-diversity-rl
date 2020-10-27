@@ -24,9 +24,11 @@ def get_initial_policy_net(level='gvgai-zelda-lvl0-v0', LINEAR_INPUT_SCALAR=16,
         env = ZeldaEnv(env, crop=True, rotate=True, full=False, repava=True, shape=(84,84))
 
     device = find_device()
-    init_screen = get_screen(env, device)
+    #init_screen = get_screen(env, device)
+    init_screen = env.reset()
 
-    _, _, screen_height, screen_width = init_screen.shape
+    #_, _, screen_height, screen_width = init_screen.shape
+    screen_height, screen_width, screen_depth = init_screen.shape
     n_actions = env.action_space.n
 
     init_model = [screen_height, screen_width, LINEAR_INPUT_SCALAR, KERNEL, n_actions]
