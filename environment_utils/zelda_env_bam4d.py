@@ -57,11 +57,11 @@ class ZeldaEnv(gym.Wrapper):
 #             print(self.direction)
         tuple_obs, reward, done, info = self.env.step(action)
             
-        if done:
-            if info.get("winner") == 3:
-                info["episode"]['c'] = 1
-            else:
-                info["episode"]['c'] = 0
+        #if done:
+            #if info.get("winner") == 3:
+                #info["episode"]['c'] = 1
+            #else:
+                #info["episode"]['c'] = 0
         ascii_obs = "\n".join([",".join(["avatar" if tuple_obs[1][i,j,7]==1 else "" for j in range(tuple_obs[1].shape[1])]) for i in range(tuple_obs[1].shape[0])])
         obs = tuple_obs[0]
         self.original = copy.deepcopy(obs)
@@ -107,7 +107,8 @@ class ZeldaEnv(gym.Wrapper):
         else:
 #             print("testing")
             tuple_obs = self.env.reset()
-        d = np.random.randint(1, 5)
+        #d = np.random.randint(1, 5)
+        d = 3
         self.direction = d
         if self.direction == 4:
             tuple_obs, _, _, info = self.env.step(0)

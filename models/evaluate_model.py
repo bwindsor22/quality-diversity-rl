@@ -114,8 +114,10 @@ def evaluate_net(policy_net,
 
         # Move to the next state
         state = next_state
-        state= torch.from_numpy(state).float().to(device)
-        state = state.view(-1,screen_depth,screen_height,screen_width)
+        if done == False:
+            state = torch.from_numpy(state).float().to(device)
+            state = state.view(-1,screen_depth,screen_height,screen_width)
+
         if done or (stop_after and t >= int(stop_after)):
             if info['winner'] == "PLAYER_WINS" or info['winner'] == 3:
                 won = 1
@@ -125,6 +127,7 @@ def evaluate_net(policy_net,
             elif info['winner'] == "PLAYER_LOSES" or info['winner'] == 2:
                 won = 0
                 sum_score += -10*(t/stop_after)
+                #sum_score += -0.5
                 logging.debug('LOSE')
                 logging.debug("Score: {}, won: {}".format(sum_score.item(), won))
             else:
