@@ -7,6 +7,7 @@ import logging
 
 import torch
 import cma
+from datetime import datetime
 
 class CMAEmitters:
     def __init__(self, initial_state_dict):
@@ -18,7 +19,9 @@ class CMAEmitters:
         state_flattened = self._flatten_model_state(initial_state_dict)
         self.num_params = len(state_flattened)
         self.pop_size = self.pop_size(self.num_params)
-        print('Set up CMA for {} params, {} pop size'.format(self.num_params, self.pop_size))
+        initial_vector = [0 for _ in range(self.num_params)]
+        self.initial_cmaes = cma.CMAEvolutionStrategy(initial_vector, self.default_sigma)
+        logging.info('Set up CMA for {} params, {} pop size'.format(self.num_params, self.pop_size))
 
 
     def tell(self, feature_descriptor, model_state,  performance):
@@ -33,17 +36,28 @@ class CMAEmitters:
             initial_vector = [0 for _ in range(self.num_params)]
             cmaes = cma.CMAEvolutionStrategy(initial_vector, self.default_sigma)
             self.emitters[feature_descriptor] = cmaes
+            self.emitters[feature_descriptor].ask(number=1)
+            logging.info('created new emitter, %s', feature_descriptor)
 
         self.data_queue[feature_descriptor].append(state_flattened)
+        logging.info('added to cmame queue, %d for %s',
+                     len(self.data_queue[feature_descriptor]), feature_descriptor)
+
         # cma is set to minimize, so we invert
         self.performances_queue[feature_descriptor].append(performance.item() * -1)
         if len(self.data_queue[feature_descriptor]) == self.pop_size:
-            logging.info('TELLING FEATURES')
-            logging.info(pformat(self.performances_queue[feature_descriptor]))
+            logging.info('Asking to prep')
+            self.emitters[feature_descriptor].ask(number=1)
+            logging.info('TELLING FEATURES, lower is better')
+            logging.info('feature: %s', feature_descriptor)
+            logging.info('to tell: %s', str(self.performances_queue[feature_descriptor]))
+            start = datetime.now()
             self.emitters[feature_descriptor].tell(self.data_queue[feature_descriptor],
                                                    self.performances_queue[feature_descriptor])
+            logging.info('Told features in %s.', str(datetime.now() - start))
             self.data_queue[feature_descriptor].clear()
             self.performances_queue[feature_descriptor].clear()
+            logging.info('cleared queue')
         logging.debug('recorded perfs to be told')
         logging.debug(pformat(self.performances_queue))
 
@@ -52,14 +66,19 @@ class CMAEmitters:
         """
         :return: a sample network for evaluation
         """
-        logging.info('ASK for next network')
-        model_type = random.choice(list(self.emitters.keys()))
-        # if model_type not in self.next_eval_queue or not self.next_eval_queue[model_type]:
-        #     self.next_eval_queue[model_type] = self.emitters[model_type].ask()
-        # flattened_state = self.next_eval_queue[model_type].pop(0)
-        flattened_state = self.emitters[model_type].ask(number=1)
+        logging.info('ASK for next network among %s', str(list(self.emitters.keys())))
+        feature_options = list(self.emitters.keys())
+        if not feature_options:
+            logging.info('No cmaes results yet. Using initial distribution')
+            flattened_state = self.initial_cmaes.ask(number=1)
+        else:
+            feature_descriptor = random.choice(feature_options)
+            logging.info('feature descriptor %s', feature_descriptor)
+            # if model_type not in self.next_eval_queue or not self.next_eval_queue[model_type]:
+            #     self.next_eval_queue[model_type] = self.emitters[model_type].ask()
+            # flattened_state = self.next_eval_queue[model_type].pop(0)
+            flattened_state = self.emitters[feature_descriptor].ask(number=1)
         model = self._model_state(flattened_state[0].tolist())
-        logging.info('returning model of type %s', model_type)
         return model
 
     @staticmethod
